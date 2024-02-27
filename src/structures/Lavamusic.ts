@@ -28,7 +28,7 @@ export default class Lavamusic extends Client {
     public commands: Collection<string, any> = new Collection();
     public aliases: Collection<string, any> = new Collection();
     public db = new ServerData();
-    public animedb = new AnimeData();
+    public animedb: AnimeData;
     public cooldown: Collection<string, any> = new Collection();
     public config = config;
     public logger: Logger = new Logger();
@@ -45,6 +45,8 @@ export default class Lavamusic extends Client {
         return new EmbedBuilder();
     }
     public async start(token: string): Promise<void> {
+        this.animedb = new AnimeData();
+        await this.animedb.intialize();
         this.loadCommands();
         this.logger.info(`Successfully loaded commands!`);
         this.loadEvents();

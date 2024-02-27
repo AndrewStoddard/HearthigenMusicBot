@@ -1,6 +1,7 @@
 import { stringify } from 'querystring';
 import config from '../config.js';
 import { XMLParser } from 'fast-xml-parser';
+import { resolve } from 'path';
 
 export default class ANNClient {
     
@@ -11,9 +12,7 @@ export default class ANNClient {
         } else {
             query = listCount.toString();
         }
-        let promise = new Promise(() => {
-            setTimeout(() => { }, 1000);
-        });
+        let promise = new Promise(resolve => setTimeout(resolve, 1000));
         await promise;
         return await fetch(config.annApiURL + "reports.xml?id=155&nlist=" + query);
 
@@ -31,7 +30,9 @@ export default class ANNClient {
         return jsonBody.report.item;
     }
     public async getAllANNs(): Promise<any> {
+        console.log("Getting All ANNS");
         let response = await this.getANNReport(0);
+        console.log("Response Status: " + response.status);
         let xmlBody = await response.text();
         let jsonBody = new XMLParser().parse(xmlBody);
         return jsonBody.report.item;

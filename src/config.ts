@@ -47,7 +47,7 @@ export default {
             secure: parseBoolean(process.env.LAVALINK_SECURE) || false,
         },
     ],
-    anilistToken: process.env.ANILIST_TOKEN,
+    anilistToken: process.env.ANILIST_API_TOKEN,
     annApiURL: process.env.ANN_API_URL || "https://www.animenewsnetwork.com/encyclopedia/",
     anisongApiURL: process.env.ANISONG_API_URL || "https://anisongdb.com/api/",
 };
