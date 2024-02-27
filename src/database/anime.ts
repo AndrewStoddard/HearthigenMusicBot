@@ -26,7 +26,7 @@ export default class AnimeData {
             'CREATE TABLE IF NOT EXISTS ann (annId INTEGER PRIMARY KEY, gid INTEGER, type TEXT, name TEXT, precision TEXT, vintage TEXT, hasAnilist BOOLEAN NOT NULL CHECK (hasAnilist IN (0, 1)), hasAnisong BOOLEAN NOT NULL CHECK (hasAnisong IN (0, 1)))'
         ).run();
         db.prepare(
-            'CREATE TABLE IF NOT EXISTS anilistmedia (anilistMediaId INTEGER PRIMARY KEY, annId INTEGER, name TEXT)'
+            'CREATE TABLE IF NOT EXISTS anilistmedia (anilistMediaId INTEGER, annId INTEGER, name TEXT, PRIMARY KEY (anilistMediaId, annId))'
         ).run();
         db.prepare(
             'CREATE TABLE IF NOT EXISTS anisong (anisongId INTEGER PRIMARY KEY, annId INTEGER, anilistMediaId INTEGER, url TEXT, songType TEXT, anisongType TEXT, animeEng TEXT, animeJap TEXT, songName TEXT, animeType TEXT)'
@@ -119,14 +119,40 @@ export default class AnimeData {
         this.addAnnToDB(ann.id, ann.gid, ann.type.toLowerCase(), ann.name, ann.precision, false, false);
     }
     private addAnnToDB(annId: number, annGid: number, annType:string, annName:string, annPrecision:string, hasAnilist: boolean, hasAnisong: boolean): void {
-        db.prepare('INSERT INTO ann (annId, gid, type, name, precision, hasAnilist, hasAnisong) VALUES(?, ?, ?, ?, ?, ?, ?)').run(annId, annGid, annType, annName, annPrecision, hasAnilist ? 1 : 0, hasAnisong ? 1 : 0);
+        try {
+            db.prepare('INSERT INTO ann (annId, gid, type, name, precision, hasAnilist, hasAnisong) VALUES(?, ?, ?, ?, ?, ?, ?)').run(annId, annGid, annType, annName, annPrecision, hasAnilist ? 1 : 0, hasAnisong ? 1 : 0);
+        } catch (error) {
+            console.error("FAILED INSERT ON anilistmedia TABLE");
+            console.error(annId);
+            console.error(annName);
+            console.error(error);
+        }
+        
     }
     private addAnisongToDB(anisongId: number, annId: number, anilistMediaId: number, url: string, songType: string, anisongType: string, animeEng: string, animeJap: string, songName: string, animeType: string): void {
-        db.prepare('INSERT INTO anisong (anisongId, annId, anilistMediaId, url, songType, anisongType, animeEng, animeJap, songName, animeType) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(anisongId, annId, anilistMediaId, url, songType, anisongType, animeEng, animeJap, songName, animeType);
+        console.log("Anisong Add To DB");
+        try {
+            db.prepare('INSERT INTO anisong (anisongId, annId, anilistMediaId, url, songType, anisongType, animeEng, animeJap, songName, animeType) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(anisongId, annId, anilistMediaId, url, songType, anisongType, animeEng, animeJap, songName, animeType);
+        } catch (error) {
+            console.error("FAILED INSERT ON anilistmedia TABLE");
+            console.error(annId);
+            console.error(anisongId);
+            console.error(error);
+        }
+        
     }
     private addAnilistMediaToDB(anilistId: number, annId: number, name: string): void {
         console.log("Anilist Add To DB");
-        db.prepare('INSERT INTO anilistmedia (anilistMediaId, annId, name) VALUES(?, ?, ?)').run(anilistId, annId, name);
+        try {
+            db.prepare('INSERT INTO anilistmedia (anilistMediaId, annId, name) VALUES(?, ?, ?)').run(anilistId, annId, name);
+        } catch (error) {
+            console.error("FAILED INSERT ON anilistmedia TABLE");
+            console.error(anilistId);
+            console.error(annId);
+            console.error(name);
+            console.error(error);
+        }
+        
     }
     private setAnilistTrueOnANN(annId: number): void {
         db.prepare('UPDATE ann SET hasAnilist = 1 WHERE annId = ?').run(annId)

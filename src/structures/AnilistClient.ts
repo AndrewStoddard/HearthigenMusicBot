@@ -1,4 +1,4 @@
-import Anilist, { MediaSearchEntry } from "anilist-node";
+import Anilist, { AnimeEntry, MangaEntry, MediaSearchEntry } from "anilist-node";
 
 import config from '../config.js';
 
@@ -10,7 +10,7 @@ export default class AnilistClient {
         this.AnilistClient = new Anilist();  
         setInterval(() => {
             this.handleQueueRequest()
-        }, 1500)
+        }, 3000)
     }
     public QueueRequest(requestType: string, requestParams: any, callback: any): void {
         this.RequestQueue.push({
@@ -46,19 +46,33 @@ export default class AnilistClient {
                 console.error("No request of type: " + nextRequest.type);
                 return;
         }
-        nextRequest.callback(result, nextRequest.params)
+        if (result == -1) {
+            nextRequest.params.retrycount = nextRequest.params.retrycount != undefined ? nextRequest.params.retrycount + 1 : 1
+            if ( nextRequest.params.retrycount <= 3) {
+                this.RequestQueue.push(nextRequest);
+            } else {
+                console.log("Dropping request after 3 tries.")
+                console.log(nextRequest);
+            }
+        } else {
+            nextRequest.callback(result, nextRequest.params)
+        }
     }
     private async SearchByAnimeName(animeName: string, id: number): Promise<number> {
-        let promise = new Promise(resolve => setTimeout(resolve, 1000));
-        await promise;
         let result: MediaSearchEntry;
         try {
             result = await this.AnilistClient.searchEntry.anime(animeName.toString(), {}, 1, 1);
         } catch (error) {
-            console.error('ANIME ERROR'),
-            console.error(id);
-            console.error(animeName);
-            console.error(error);
+            if (error.message.includes("AniList API returned with a 429 error code. Message: Too Many Requests")) {
+                console.error("RATE LIMIT HIT");
+                return -1;
+            } else {
+                console.error('ANIME SEARCH ERROR'),
+                console.error(id);
+                console.error(animeName);
+                console.error(error);
+                return -1;
+            }
         }
         let anilistId = 0;
         if (result != undefined && result.media.length > 0) {
@@ -67,16 +81,20 @@ export default class AnilistClient {
         return anilistId;
     }
     private async SearchByMangaName(mangaName: string, id: number): Promise<number> {
-        let promise = new Promise(resolve => setTimeout(resolve, 1000));
-        await promise;
         let result: MediaSearchEntry;
         try {
             result = await this.AnilistClient.searchEntry.manga(mangaName.toString(), {}, 1, 1);
         } catch (error) {
-            console.error('MANGA ERROR'),
-            console.error(id);
-            console.error(mangaName);
-            console.error(error);
+            if (error.message.includes("AniList API returned with a 429 error code. Message: Too Many Requests")) {
+                console.error("RATE LIMIT HIT");
+                return -1;
+            } else {
+                console.error('MANGA SEARCH ERROR'),
+                console.error(id);
+                console.error(mangaName);
+                console.error(error);
+                return -1;
+            }
         }
         let anilistId = 0;
         if (result != undefined && result.media.length > 0) {
@@ -85,11 +103,37 @@ export default class AnilistClient {
         return anilistId;
     }
     public async GetAnimeById(id: number): Promise<any> {
-        let result = await this.AnilistClient.media.anime(id);
+        let result: AnimeEntry;
+        try {
+            result = await this.AnilistClient.media.anime(id);
+        } catch (error) {
+            if (error.message.includes("AniList API returned with a 429 error code. Message: Too Many Requests")) {
+                console.error("RATE LIMIT HIT");
+                return -1;
+            } else {
+                console.error('ANIME GET ERROR'),
+                console.error(id);
+                console.error(error);
+                return -1;
+            }
+        }
         return result;
     }
     public async GetMangaById(id: number): Promise<any> {
-        let result = await this.AnilistClient.media.manga(id);
+        let result: MangaEntry;
+        try {
+            result = await this.AnilistClient.media.manga(id);
+        } catch (error) {
+            if (error.message.includes("AniList API returned with a 429 error code. Message: Too Many Requests")) {
+                console.error("RATE LIMIT HIT");
+                return -1;
+            } else {
+                console.error('MANGA GET ERROR'),
+                console.error(id);
+                console.error(error);
+                return -1;
+            }
+        }
         return result;
     }
 }

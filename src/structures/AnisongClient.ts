@@ -5,7 +5,7 @@ export default class AnisongClient {
         this.RequestQueue = []
         setInterval(() => {
             this.handleQueueRequest()
-        }, 1000)
+        }, 1500)
     }
     public QueueRequest(requestType: string, requestParams: any, callback: any): void {
         this.RequestQueue.push({
@@ -32,23 +32,45 @@ export default class AnisongClient {
                 console.error("No request of type: " + nextRequest.type);
                 return;
         }
-        nextRequest.callback(result, nextRequest.params)
+        if (result == -1) {
+            nextRequest.params.retrycount = nextRequest.params.retrycount != undefined ? nextRequest.params.retrycount + 1 : 1
+            if ( nextRequest.params.retrycount <= 3) {
+                this.RequestQueue.push(nextRequest);
+            } else {
+                console.log("Dropping request after 3 tries.")
+                console.log(nextRequest);
+            }
+        } else {
+            nextRequest.callback(result, nextRequest.params)
+        }
     }
 
-    private async getAnisongDataFromANNId(annId: number, ignoreDuplicate: boolean = false, openingFilter: boolean = true, endingFilter: boolean = true, insertFilter: boolean = true): Promise<AnisongData[]> {
-            let response = await fetch(config.anisongApiURL + "annId_request", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    "annId": annId,
-                    "ignore_duplicate": ignoreDuplicate,
-                    "opening_filter": openingFilter,
-                    "ending_filter": endingFilter,
-                    "insert_filter": insertFilter
-                })
-            });
+    private async getAnisongDataFromANNId(annId: number, ignoreDuplicate: boolean = false, openingFilter: boolean = true, endingFilter: boolean = true, insertFilter: boolean = true): Promise<any> {
+            let response: Response
+            try {
+                response = await fetch(config.anisongApiURL + "annId_request", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        "annId": annId,
+                        "ignore_duplicate": ignoreDuplicate,
+                        "opening_filter": openingFilter,
+                        "ending_filter": endingFilter,
+                        "insert_filter": insertFilter
+                    })
+                });
+            } catch (error) {
+                console.error("ANISONG GET ERROR");
+                console.error(annId);
+                console.error(error)
+                return -1;
+            }
+            if (response.status == 429) {
+                console.error("RATE LIMIT REACH");
+                return -1;
+            }
             let jsonText = await response.text();
             let json = JSON.parse(jsonText);
         let anisongs: AnisongData[] = [];
