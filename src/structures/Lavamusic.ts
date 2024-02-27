@@ -21,12 +21,14 @@ import config from '../config.js';
 import ServerData from '../database/server.js';
 import loadPlugins from '../plugin/index.js';
 import { Utils } from '../utils/Utils.js';
+import AnimeData from '../database/anime.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default class Lavamusic extends Client {
     public commands: Collection<string, any> = new Collection();
     public aliases: Collection<string, any> = new Collection();
     public db = new ServerData();
+    public animedb: AnimeData;
     public cooldown: Collection<string, any> = new Collection();
     public config = config;
     public logger: Logger = new Logger();
@@ -43,6 +45,8 @@ export default class Lavamusic extends Client {
         return new EmbedBuilder();
     }
     public async start(token: string): Promise<void> {
+        this.animedb = new AnimeData();
+        await this.animedb.intialize();
         this.loadCommands();
         this.logger.info(`Successfully loaded commands!`);
         this.loadEvents();
