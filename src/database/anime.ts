@@ -102,15 +102,11 @@ export default class AnimeData {
         let noAnilistAnime: any = db.prepare('SELECT * FROM ann WHERE hasAnilist = ? AND type != ? AND type != ?').all(0, 'manga', 'anthology');
         let noAnisong: any = db.prepare('SELECT * FROM ann WHERE hasAnisong = ? AND type != ? AND type != ?').all(0, 'manga', 'anthology');
             if (noAnilistManga) { 
-                console.log("noAnilistManga");
-                console.log(noAnilistManga);
                 noAnilistManga.forEach(async element => {
                     this.AnilistClient.QueueRequest("SearchByMangaName", {"id": element.annId, "mangaName": element.name, "this": this}, this.handleAnilistSearch);
                 });
             }
             if (noAnilistAnime) { 
-                console.log("noAnilistAnime");
-                console.log(noAnilistAnime);
                 noAnilistAnime.forEach(async element => {
                     this.AnilistClient.QueueRequest("SearchByAnimeName", {"id": element.annId, "animeName": element.name, "this": this}, this.handleAnilistSearch);
                 });
@@ -134,7 +130,7 @@ export default class AnimeData {
         if (anisongsWithoutAnilist) {
             anisongsWithoutAnilist.forEach(element => {
                 let anilistmedia: any = db.prepare('SELECT * FROM anilistmedia where annId = ?').all(element.annId);
-                if (anilistmedia) {
+                if (anilistmedia && anilistmedia.length > 0) {
                     this.setAnilistOnAnisong(anilistmedia[0].anilistMediaId, element.annId);
                 } else {
                     this.AnilistClient.QueueRequest("SearchByAnimeName", {"id": element.annId, "animeName": element.animeJap, "this": this}, this.handleAnilistSearch);

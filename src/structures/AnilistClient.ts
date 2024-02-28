@@ -23,7 +23,7 @@ export default class AnilistClient {
         if (this.RequestQueue == undefined || this.RequestQueue.length == 0) {
             return;
         }
-        console.log("Current Length of queue: " + this.RequestQueue.length);
+        console.log("Current Length of Anilist Queue: " + this.RequestQueue.length);
         let nextRequest = this.RequestQueue.splice(0, 1)[0];
         if (nextRequest == undefined || nextRequest.type == undefined) {
             console.log("Failed to get request data");
