@@ -5,7 +5,6 @@ import AnilistClient from '../structures/AnilistClient.js';
 
 import config from '../config.js';
 import { CronJob } from 'cron';
-import { start } from 'repl';
 
 const db = new Database('./database/anime.db', {
     fileMustExist: false,
@@ -34,10 +33,18 @@ export default class AnimeData {
         const data: any = db.prepare('SELECT * FROM ann LIMIT 1').get();
         if (!data) {
             await this.pullAllFromANN();
+        } else {
+            this.doBasicDBOperations();
         }
         const job1 = new CronJob('0 0 0 * * *', this.pullRecentFromANN, null, true, 'America/New_York');
         const job2 = new CronJob('0 0 0 * * 1', this.CheckAnilistAndAnisongMissing, null, true, 'America/New_York');
         
+    }
+    private async doBasicDBOperations(): Promise<void> {
+        await this.pullRecentFromANN();
+        await this.CheckAnilistAndAnisongMissing();
+        this.checkAnisongHasAnilist();
+        this.checkAnisongMissingEnglish();
     }
     private async pullRecentFromANN(): Promise<void> {
         let maxAnnId: any = db.prepare(
@@ -80,9 +87,14 @@ export default class AnimeData {
                 returnParams.this.addAnisongToDB(anisong.anisongId, anisong.annId, anilistId, anisong.url, anisong.songType, anisong.anisongType, anisong.animeEng, anisong.animeJap, anisong.songName, anisong.animeType);
             });
             if (anilistId == 0) {
-                returnParams.this.AnilistClient.QueueRequest("SearchByAnimeName", {"id": returnParams.annId, "animeName": anisongs[0].animeEng, "this": returnParams.this}, returnParams.this.handleAnilistSearch);
+                returnParams.this.AnilistClient.QueueRequest("SearchByAnimeName", {"id": returnParams.annId, "animeName": anisongs[0].animeJap, "this": returnParams.this}, returnParams.this.handleAnilistSearch);
             }
             returnParams.this.setAnisongTrueOnANN(returnParams.annId);
+        }
+    }
+    public handleUpdateAnisongEnglish(anisongs: AnisongData[], returnParams: any) {
+        if (anisongs.length > 0) {
+            db.prepare('UPDATE anisong set animeEng = ? where annId = ?').run(anisongs[0].animeEng, returnParams.annId);
         }
     }
     private async CheckAnilistAndAnisongMissing(): Promise<void> {
@@ -101,9 +113,30 @@ export default class AnimeData {
             }
             if (noAnisong) { 
                 noAnisong.forEach(async element => {
-                    this.AnisongClient.QueueRequest("getAnisongDataFromANNId", {"annId": element.annId, "this": this}, this.handleAnisongSearch)
+                    this.AnisongClient.QueueRequest("getAnisongDataFromANNId", {"annId": element.annId, "this": this}, this.handleAnisongSearch);
                 });
             }
+    }
+    private checkAnisongMissingEnglish(): void {
+        let anisongsWithoutEng: any = db.prepare('SELECT annId FROM anisong WHERE animeEng is NULL GROUP BY annId').run()
+        if (anisongsWithoutEng) {
+            anisongsWithoutEng.forEach(element => {
+                this.AnisongClient.QueueRequest("getAnisongDataFromANNId", {"annId": element.annId, "this": this}, this.handleUpdateAnisongEnglish);
+            });
+        }
+    }
+    private checkAnisongHasAnilist(): void {
+        let anisongsWithoutAnilist: any = db.prepare('SELECT * FROM anisong WHERE anilistMediaId = 0 ').run();
+        if (anisongsWithoutAnilist) {
+            anisongsWithoutAnilist.forEach(element => {
+                let anilistmedia: any = db.prepare('SELECT * FROM anilistmedia where annId = ?').run(element.annId);
+                if (anilistmedia) {
+                    this.setAnilistOnAnisong(anilistmedia[0].anilistMediaId, element.annId);
+                } else {
+                    this.AnilistClient.QueueRequest("SearchByAnimeName", {"id": element.annId, "animeName": element.animeJap, "this": this}, this.handleAnilistSearch);
+                }
+            });
+        }
     }
     private async addNewANN(ann: any): Promise<void> {
         let type = ann.type.toLowerCase();
@@ -130,7 +163,7 @@ export default class AnimeData {
         
     }
     private addAnisongToDB(anisongId: number, annId: number, anilistMediaId: number, url: string, songType: string, anisongType: string, animeEng: string, animeJap: string, songName: string, animeType: string): void {
-        console.log("Anisong Add To DB");
+        console.log("Anisong Add To DB: " + anisongId);
         try {
             db.prepare('INSERT INTO anisong (anisongId, annId, anilistMediaId, url, songType, anisongType, animeEng, animeJap, songName, animeType) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(anisongId, annId, anilistMediaId, url, songType, anisongType, animeEng, animeJap, songName, animeType);
         } catch (error) {
@@ -142,7 +175,7 @@ export default class AnimeData {
         
     }
     private addAnilistMediaToDB(anilistId: number, annId: number, name: string): void {
-        console.log("Anilist Add To DB");
+        console.log("Anilist Add To DB: " + name);
         try {
             db.prepare('INSERT INTO anilistmedia (anilistMediaId, annId, name) VALUES(?, ?, ?)').run(anilistId, annId, name);
         } catch (error) {

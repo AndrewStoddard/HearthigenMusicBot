@@ -18,6 +18,7 @@ export default class AnisongClient {
         if (this.RequestQueue == undefined || this.RequestQueue.length == 0) {
             return;
         }
+        console.log("Current Length of queue: " + this.RequestQueue.length);
         let nextRequest = this.RequestQueue.splice(0, 1)[0];
         if (nextRequest == undefined || nextRequest.type == undefined) {
             console.log("Failed to get request data");
@@ -77,7 +78,7 @@ export default class AnisongClient {
         if (Array.isArray(json)) {
             json.forEach(element => {
                 if (element.audio != "" && element.audio != undefined && element.audio != null) {
-                    let anisongdata = new AnisongData(element.annSongId, element.annId, element.audio, element.songType, element.animeEnName, element.animeJPName, element.songName, element.animeType);
+                    let anisongdata = new AnisongData(element.annSongId, element.annId, element.audio, element.songType, element.animeEngName, element.animeJPName, element.songName, element.animeType);
                     anisongs.push(anisongdata);
                 }
             });
