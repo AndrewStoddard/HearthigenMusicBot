@@ -103,16 +103,19 @@ export default class AnimeData {
         let noAnilistAnime: any = db.prepare('SELECT * FROM ann WHERE hasAnilist = ? AND type != ? AND type != ?').all(0, 'manga', 'anthology');
         let noAnisong: any = db.prepare('SELECT * FROM ann WHERE hasAnisong = ? AND type != ? AND type != ?').all(0, 'manga', 'anthology');
             if (noAnilistManga) { 
+                console.log("Manga with no Anilist: " + noAnilistManga.length)
                 noAnilistManga.forEach(async element => {
                     this.AnilistClient.QueueRequest("SearchByMangaName", {"id": element.annId, "mangaName": element.name, "this": this}, this.handleAnilistSearch);
                 });
             }
             if (noAnilistAnime) { 
+                console.log("Anime with no Anilist: " + noAnilistAnime.length)
                 noAnilistAnime.forEach(async element => {
                     this.AnilistClient.QueueRequest("SearchByAnimeName", {"id": element.annId, "animeName": element.name, "this": this}, this.handleAnilistSearch);
                 });
             }
             if (noAnisong) { 
+                console.log("Anime with no Anisong: " + noAnisong.length)
                 noAnisong.forEach(async element => {
                     this.AnisongClient.QueueRequest("getAnisongDataFromANNId", {"annId": element.annId, "this": this}, this.handleAnisongSearch);
                 });
@@ -121,6 +124,7 @@ export default class AnimeData {
     private checkAnisongMissingEnglish(): void {
         let anisongsWithoutEng: any = db.prepare('SELECT annId FROM anisong WHERE animeEng is NULL GROUP BY annId').all()
         if (anisongsWithoutEng) {
+            console.log("Anisong without Eng: " + anisongsWithoutEng.length)
             anisongsWithoutEng.forEach(element => {
                 this.AnisongClient.QueueRequest("getAnisongDataFromANNId", {"annId": element.annId, "this": this}, this.handleUpdateAnisongEnglish);
             });
@@ -129,6 +133,7 @@ export default class AnimeData {
     private checkAnisongHasAnilist(): void {
         let anisongsWithoutAnilist: any = db.prepare('SELECT * FROM anisong WHERE anilistMediaId = 0 ').all();
         if (anisongsWithoutAnilist) {
+            console.log("Anisongs with no Anilist: " + anisongsWithoutAnilist.length)
             anisongsWithoutAnilist.forEach(element => {
                 let anilistmedia: any = db.prepare('SELECT * FROM anilistmedia where annId = ?').all(element.annId);
                 if (anilistmedia && anilistmedia.length > 0) {
