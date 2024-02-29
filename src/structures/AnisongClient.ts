@@ -78,7 +78,7 @@ export default class AnisongClient {
         if (Array.isArray(json)) {
             json.forEach(element => {
                 if (element.audio != "" && element.audio != undefined && element.audio != null) {
-                    let anisongdata = new AnisongData(element.annSongId, element.annId, element.audio, element.songType, element.animeEngName, element.animeJPName, element.songName, element.animeType);
+                    let anisongdata = new AnisongData(element.annSongId, element.annId, element.audio, element.songType, element.animeENName, element.animeJPName, element.songName, element.animeType);
                     anisongs.push(anisongdata);
                 }
             });
