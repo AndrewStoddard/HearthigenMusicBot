@@ -94,6 +94,7 @@ export default class AnimeData {
     }
     public handleUpdateAnisongEnglish(anisongs: AnisongData[], returnParams: any) {
         if (anisongs.length > 0) {
+            console.log("AnimeEng Update: " + anisongs[0] + ". For Id: " + returnParams.annId )
             db.prepare('UPDATE anisong set animeEng = ? where annId = ?').run(anisongs[0].animeEng, returnParams.annId);
         }
     }
