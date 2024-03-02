@@ -78,7 +78,7 @@ export default class AnisongClient {
         if (Array.isArray(json)) {
             json.forEach(element => {
                 if (element.audio != "" && element.audio != undefined && element.audio != null) {
-                    let anisongdata = new AnisongData(element.annSongId, element.annId, element.audio, element.songType, element.animeENName, element.animeJPName, element.songName, element.animeType);
+                    let anisongdata = new AnisongData(element.annSongId, element.annId, element.audio, element.songType, element.animeENName, element.animeJPName, element.songName, element.animeType, element.songArtist, element.songDifficulty, element.HQ, element.MQ, element.songCategory);
                     anisongs.push(anisongdata);
                 }
             });
@@ -90,7 +90,7 @@ export default class AnisongClient {
     }
 }
 export class AnisongData {
-    constructor(anisongId: number, annId: number, url: string, anisongType: string, animeEng: string, animeJap: string, songName: string, animeType: string) {
+    constructor(anisongId: number, annId: number, url: string, anisongType: string, animeEng: string, animeJap: string, songName: string, animeType: string, songArtist: string, songDifficulty: number, hq: string, mq: string, songCategory: string) {
         this.anisongId = anisongId;
         this.annId = annId;
         this.url = url;
@@ -99,6 +99,11 @@ export class AnisongData {
         this.animeJap = animeJap;
         this.songName = songName;
         this.animeType = animeType;
+        this.songArtist = songArtist;
+        this.songDifficulty = songDifficulty;
+        this.hq = hq;
+        this.mq = mq;
+        this.songCategory = songCategory;
         if (this.anisongType.includes("Opening")) {
             this.songType = "OP";
         } else if (this.anisongType.includes("Ending")) {
@@ -118,4 +123,9 @@ export class AnisongData {
     public animeJap: string;
     public songName: string;
     public animeType: string;
+    public songArtist: string;
+    public songDifficulty: number;
+    public hq: string;
+    public mq: string;
+    public songCategory: string;
 }
