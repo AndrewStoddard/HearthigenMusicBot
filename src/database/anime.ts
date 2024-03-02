@@ -41,15 +41,9 @@ export default class AnimeData {
         
     }
     private async doBasicDBOperations(): Promise<void> {
-        let allANNs = await this.ANNClient.getAllANNs();
-        let promises: Promise<void>[] = [];
-        allANNs.forEach(element => {
-            promises.push(this.updateAnnVintage(element));
-        });
-        Promise.all(promises);
+        await this.CheckAnilistAndAnisongMissing();
         this.checkAnisongHasAnilist();
         await this.pullRecentFromANN();
-        await this.CheckAnilistAndAnisongMissing();
     }
 
     private async pullRecentFromANN(): Promise<void> {
@@ -136,10 +130,6 @@ export default class AnimeData {
             });
         }
     }
-
-    private async updateAnnVintage(ann: any): Promise<void> {
-        db.prepare("UPDATE ann SET vintage = ? where annId = ?").run(ann.vintage, ann.id);
-    }
     private async addNewANN(ann: any): Promise<void> {
         let type = ann.type.toLowerCase();
         if (type.includes('manga') || type.includes('anthology')) {
@@ -202,6 +192,8 @@ export default class AnimeData {
         let anilistId: any = db.prepare('SELECT anilistMediaId FROM anilistmedia WHERE annId = ? LIMIT 1').get(annId);
         if (!anilistId) {
             anilistId = 0;
+        } else {
+            anilistId = anilistId.anilistMediaId
         }
         return anilistId;
     }
