@@ -91,7 +91,7 @@ export default class AnimeData {
         if (anisongs.length > 0) {
             let anilistId = returnParams.this.getAnilistIdFromANN(returnParams.annId);
             anisongs.forEach(anisong => {
-                returnParams.this.addAnisongToDB(anisong.anisongId, anisong.annId, anilistId, anisong.url, anisong.songType, anisong.anisongType, anisong.animeEng, anisong.animeJap, anisong.songName, anisong.animeType, anisong.songArtist, anisong.hq, anisong.mq, anisong.songDifficulty);
+                returnParams.this.addAnisongToDB(anisong.anisongId, anisong.annId, anilistId, anisong.url, anisong.songType, anisong.anisongType, anisong.animeEng, anisong.animeJap, anisong.songName, anisong.animeType, anisong.songArtist, anisong.songDifficulty, anisong.hq, anisong.mq, anisong.songCategory);
             });
             if (anilistId == 0) {
                 returnParams.this.AnilistClient.QueueRequest("SearchByAnimeName", {"id": returnParams.annId, "animeName": anisongs[0].animeJap, "this": returnParams.this}, returnParams.this.handleAnilistSearch);
@@ -169,7 +169,7 @@ export default class AnimeData {
         try {
             db.prepare('INSERT INTO anisong (anisongId, annId, anilistMediaId, url, songType, anisongType, animeEng, animeJap, songName, animeType, songArtist, songDifficulty, hq, mq, songCategory) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(anisongId, annId, anilistMediaId, url, songType, anisongType, animeEng, animeJap, songName, animeType, songArtist, songDifficulty, hq, mq, songCategory);
         } catch (error) {
-            console.error("FAILED INSERT ON anilistmedia TABLE");
+            console.error("FAILED INSERT ON anisong TABLE");
             console.error(annId);
             console.error(anisongId);
             console.error(error);
