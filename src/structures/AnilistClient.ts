@@ -1,4 +1,4 @@
-import Anilist, { AnimeEntry, MangaEntry, MediaSearchEntry } from "anilist-node";
+import Anilist, { AnimeEntry, MangaEntry, MediaSearchEntry, UserList } from "anilist-node";
 
 import config from '../config.js';
 
@@ -134,6 +134,42 @@ export default class AnilistClient {
                 console.error(id);
                 console.error(error);
                 return -1;
+            }
+        }
+        return result;
+    }
+    public async GetUserExist(anilistName: string): Promise<boolean> {
+        let result: any;
+        try {
+            result = await this.AnilistClient.user.all(anilistName);
+        } catch (error) {
+            if (error.message.includes("AniList API returned with a 429 error code. Message: Too Many Requests")) {
+                console.error("RATE LIMIT HIT");
+                return false;
+            } else if (error.message.includes("AniList API returned with a 404 error code. Message: Not Found")) {
+                result = false;
+            }
+            else {
+                console.error('GET USER EXIST ERROR'),
+                console.error(error);
+                return false;
+            }
+        }
+        return result ? true : false;
+    }
+
+    public async GetUserAnimeEntries(anilistName: string) {
+        let result: UserList[];
+        try {
+            result = await this.AnilistClient.lists.anime(anilistName);
+        } catch (error) {
+            if (error.message.includes("AniList API returned with a 429 error code. Message: Too Many Requests")) {
+                console.error("RATE LIMIT HIT");
+                return false;
+            } else {
+                console.error('GET USER ANIME ENTRIES ERROR'),
+                console.error(error);
+                return false;
             }
         }
         return result;

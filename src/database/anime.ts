@@ -30,6 +30,15 @@ export default class AnimeData {
         db.prepare(
             'CREATE TABLE IF NOT EXISTS anisong (anisongId INTEGER PRIMARY KEY, annId INTEGER, anilistMediaId INTEGER, url TEXT, songType TEXT, anisongType TEXT, animeEng TEXT, animeJap TEXT, songName TEXT, animeType TEXT, songArtist TEXT, songDifficulty REAL, hq TEXT, mq TEXT, songCategory TEXT)'
         ).run();
+        db.prepare(
+            'CREATE TABLE IF NOT EXISTS anilistuser (discordId INTEGER PRIMARY KEY, anilistName TEXT)'
+        ).run();
+        db.prepare(
+            'CREATE TABLE IF NOT EXISTS anilistusermedia (discordId INTEGER, anilistMediaId INTEGER, status TEXT, score REAL, PRIMARY KEY (discordId, anilistMediaId)'
+        ).run();
+        db.prepare(
+            'CREATE TABLE IF NOT EXISTS animemusicexclude (anisongId INTEGER PRIMARY KEY, anilistMediaId INTEGER, annId INTEGER, animeName TEXT, songName TEXT, songArtist TEXT'
+        ).run();
         const data: any = db.prepare('SELECT * FROM ann LIMIT 1').get();
         if (!data) {
             await this.pullAllFromANN();
@@ -197,7 +206,23 @@ export default class AnimeData {
         }
         return anilistId;
     }
-
-  
-
+    private setUserAnilist(discordId: number, anilistName: string) {
+        db.prepare('INSERT OR REPLACE anilistuser (discordId, anilistName) VALUES(?, ?)').run(discordId, anilistName);
+    }
+    private addAnilistUserMedia(discordId: number, anilistMediaId: number, status: string, score: number) {
+        db.prepare('INSERT OR REPLACE anilistusermedia (discordId, anilistMediaId, status, score) VALUES(?, ?, ?, ?)').run(discordId, anilistMediaId, status, score);
+    }
+    private addAnimeMusicExclude(anisongId: number, anilistMediaId: number, annId: number) {
+        db.prepare('INSERT OR REPLACE anilistusermedia (anisongId, anilistMediaId, annId) VALUES(?, ?, ?)').run(anisongId, anilistMediaId, annId);
+    } 
+    private removeAnimeMusicExclude(anisongId: number) {
+        db.prepare('DELETE FROM animemusicexclude WHERE anisongId = ?').run(anisongId);
+    } 
+    private selectAnimeExclusions() {
+        let result: any = db.prepare('SELECT ame.*, anis.* FROM animemusicexclude ame JOIN anisong anis ON anis.anisongId = ame.anisongId').all()
+        if (!result) {
+            result = [];
+        }
+        return result;
+    }
 }
