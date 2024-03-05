@@ -212,6 +212,9 @@ export default class AnimeData {
     private addAnilistUserMedia(discordId: number, anilistMediaId: number, status: string, score: number) {
         db.prepare('INSERT OR REPLACE anilistusermedia (discordId, anilistMediaId, status, score) VALUES(?, ?, ?, ?)').run(discordId, anilistMediaId, status, score);
     }
+    private removeAnilistUserMedia(discordId: number) {
+        db.prepare('DELETE FROM anilistusermedia WHERE discordId = ?').run(discordId);
+    }
     private addAnimeMusicExclude(anisongId: number, anilistMediaId: number, annId: number) {
         db.prepare('INSERT OR REPLACE anilistusermedia (anisongId, anilistMediaId, annId) VALUES(?, ?, ?)').run(anisongId, anilistMediaId, annId);
     } 
@@ -224,5 +227,164 @@ export default class AnimeData {
             result = [];
         }
         return result;
+    }
+    public queryUserAnilistResults(anilistMediaId: number): UserAnilistResults[] {
+        let data: any[] = db.prepare("SELECT * FROM anilistusermedia WHERE anilistMediaId = ?").all(anilistMediaId);
+        let result = [];
+        if (data) {
+            data.forEach(element => {
+                element.push(new UserAnilistResults(element.discordId, element.anilistName, element.status, element.score))
+            });
+        }
+        return result;
+    }
+    public queryAnisongs(query: AnisongQuery) : AnisongQueryResult[] {
+        let queryString = "SELECT anis.* FROM anisong anis";
+        if (query.discordId != -1) {
+            queryString += " JOIN anilistusermedia aum on aum.discordId = @discordId AND aum.anilistMediaId = anis.anilistMediaId";
+            queryString += " WHERE " + this.queryUserAnisongData(query) + " AND";
+        } else if (query.anilistName != "") {
+            queryString += " JOIN anilistuser au on au.anilistName = @anilistName";
+            queryString += " JOIN anilistusermedia aum on aum.discordId = au.discordId AND aum.anilistMediaId = anis.anilistMediaId";
+            queryString += " WHERE " + this.queryUserAnisongData(query) + " AND";
+        } else {
+            queryString += " WHERE";
+        }
+        queryString += " (anis.animeEng like '%@animeName%' || anis.animeJap like '%@animeName%')";
+        queryString += query.annId == -1 ? "" : " AND anis.annId = @annId";
+        queryString += query.anilistMediaId == -1 ? "" : " AND anis.anilistMediaId = @anilistMediaId";
+        queryString += query.openings ? "" : " AND anis.songType != 'OP'";
+        queryString += query.endings ? "" : " AND anis.songType != 'ED'";
+        queryString += query.inserts ? "" : " AND anis.songType != 'IN'";
+        queryString += query.movies ? "" : " AND anis.animeType not like '%movie%'";
+        queryString += query.tv ? "" : " AND anis.animeType not like '%tv%'";
+        queryString += query.ona ? "" : " AND anis.animeType not like '%ona%'";
+        queryString += query.ova ? "" : " AND anis.animeType not like '%ova%'";
+        queryString += query.oav ? "" : " AND anis.animeType not like '%oav%'";
+        queryString += query.special ? "" : " AND anis.animeType not like '%special%'";
+        queryString += query.artist == ""  ? "" : " AND anis.songArtist like '%@artist%'"
+        queryString += " AND anis.songDifficulty >= @difficultyMin AND aum.songDifficulty <= @difficultyMax";
+        queryString += query.instumental ? "" : " AND anis.songCategory not like '%instumental%'";
+        queryString += query.character ? "" : " AND anis.songCategory not like '%character%'";
+        queryString += query.chanting ? "" : " AND anis.songCategory not like '%chanting%'";
+        queryString += query.standard ? "" : " AND anis.songCategory not like '%standard%'";
+        let data: any[] = db.prepare(queryString).all(query);
+        let result = [];
+        if (data && data.length > 0) {
+            data.forEach(element => {
+                let videoURL = element.url;
+                if (element.hq) {
+                    videoURL = element.hq;
+                } else if (element.mq) {
+                    videoURL = element.mq;
+                }
+                result.push(new AnisongQueryResult(element.anisongId, element.annId, element.anilistMediaId, element.anisongType, element.animeEng, element.animeJap, element.songName, element.animeType, element.songArtist, element.songDifficulty, videoURL, element.songCategory));
+            });
+        }
+        return result;
+    }
+    private queryUserAnisongData(query: AnisongQuery): string {
+        let queryStrings = [];
+        if (query.userStatusCompleted) {
+            queryStrings.push("aum.status = 'COMPLETED'");
+        }
+        if (query.userStatusPlanning) {
+            queryStrings.push("aum.status = 'PLANNING'");
+        }
+        if (query.userStatusWatching) {
+            queryStrings.push("aum.status = 'CURRENT'");
+        }
+        if (query.userStatusDropped) {
+            queryStrings.push("aum.status = 'DROPPED'");
+        }
+        if (query.userStatusPaused) {
+            queryStrings.push("aum.status = 'PAUSED'");
+        }
+        let queryString = "";
+        if (queryStrings.length > 0) {
+            queryString = "(" + queryStrings.join(" OR ") + ")";
+        }
+        queryString += " AND aum.score >= @userScoreMin AND aum.score <= @userScoreMax";
+        return queryString
+    }
+    
+}
+
+class AnisongQuery {
+    public discordId: number = -1;
+    public anilistName: string = "";
+    public userStatusCompleted: boolean = true;
+    public userStatusPlanning: boolean = true;
+    public userStatusWatching: boolean = true;
+    public userStatusDropped: boolean = true;
+    public userStatusPaused: boolean = true;
+    public userScoreMax: number = 100;
+    public userScoreMin: number = 0;
+    public animeName: string = "";
+    public annId: number = -1;
+    public anilistMediaId: number = -1;
+    public openings: boolean = true;
+    public inserts: boolean = true;
+    public endings: boolean = true;
+    public movies: boolean = true;
+    public tv: boolean = true;
+    public ona: boolean = true;
+    public ova: boolean = true;
+    public oav: boolean = true;
+    public special: boolean = true;
+    public artist: string = "";
+    public difficultyMax: number = 100;
+    public difficultyMin: number = 0;
+    public instumental: boolean = true;
+    public character: boolean = true;
+    public chanting: boolean = true;
+    public standard: boolean = true;
+}
+class AnisongQueryResult {
+    public anisongId: number;
+    public anilistMediaId: number;
+    public annId: number;
+    public anilistURL: string;
+    public anisongType: string;
+    public animeEng: string;
+    public animeJap: string;
+    public songName: string;
+    public animeType: string;
+    public songArtist: string;
+    public songDifficulty: number;
+    public videoURL: string;
+    public songCategory: string;
+    public users: UserAnilistResults[];
+    constructor(anisongId: number, annId: number, anilistMediaId: number, anisongType: string, animeEng: string, animeJap: string, songName: string, animeType: string, songArtist: string, songDifficulty: number, videoURL: string, songCategory: string) {
+        this.anisongId = anisongId;
+        this.annId = annId;
+        this.anisongType = anisongType;
+        this.animeEng = animeEng;
+        this.animeJap = animeJap;
+        this.songName = songName;
+        this.animeType = animeType;
+        this.songArtist = songArtist;
+        this.songDifficulty = songDifficulty;
+        this.songCategory = songCategory;
+        this.anilistMediaId = anilistMediaId;
+        this.videoURL = videoURL;
+        this.anilistURL = config.anilistAnimeURL + this.anilistMediaId;
+    }
+    public setUsers(users: UserAnilistResults[]) : void {
+        this.users = users;
+    }
+
+
+}
+class UserAnilistResults {
+    public discordId: number;
+    public anilistName: string;
+    public status: string;
+    public score: number;
+    constructor(discordId: number, anilistName: string, status: string, score: number) {
+        this.discordId = discordId;
+        this.anilistName = anilistName;
+        this.status = status;
+        this.score = score;
     }
 }

@@ -50,6 +50,7 @@ export default {
     anilistToken: process.env.ANILIST_API_TOKEN,
     annApiURL: process.env.ANN_API_URL || "https://www.animenewsnetwork.com/encyclopedia/",
     anisongApiURL: process.env.ANISONG_API_URL || "https://anisongdb.com/api/",
+    anilistAnimeURL: process.env.ANILIST_ANIME_URL || "https://anilist.co/anime/"
 };
 
 function parseBoolean(value: string | undefined): boolean {
