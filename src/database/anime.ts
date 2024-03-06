@@ -46,9 +46,9 @@ export default class AnimeData {
         // } else {
         //     this.doBasicDBOperations();
         // }
-        // const job1 = new CronJob('0 0 0 * * *', this.pullRecentFromANN, null, true, 'America/New_York');
-        // const job2 = new CronJob('0 0 0 * * 1', this.CheckAnilistAndAnisongMissing, null, true, 'America/New_York');
-        
+        const job1 = new CronJob('0 0 0 * * 1', this.pullRecentFromANN, null, true, 'America/New_York');
+        const job2 = new CronJob('0 0 0 * * 1', this.CheckAnilistAndAnisongMissing, null, true, 'America/New_York');
+        const job3 = new CronJob('0 0 0 * * *', this.updateAllAnilists, null, true, 'America/New_York');        
     }
     private async doBasicDBOperations(): Promise<void> {
         await this.CheckAnilistAndAnisongMissing();
@@ -206,6 +206,14 @@ export default class AnimeData {
             anilistId = anilistId.anilistMediaId
         }
         return anilistId;
+    }
+    private updateAllAnilists() {
+        let data: any[] = db.prepare('SELECT * from anilistuser').all()
+        if (data) {
+            data.forEach(async element => {
+                await this.setUserAnilist(element.discordId, element.anilistName)
+            });
+        }
     }
     public async setUserAnilist(discordId: number, anilistName: string): Promise<boolean> {
         let userLists = await this.AnilistClient.GetUserAnimeEntries(anilistName);
