@@ -31,30 +31,62 @@ export default class Queue extends Command {
     public async run(client: Lavamusic, ctx: Context): Promise<any> {
         const player = client.queue.get(ctx.guild.id);
         
-        if (player.queue.length === 0)
-            return await ctx.sendMessage({
-                embeds: [
-                    this.client
-                        .embed()
-                        .setColor(this.client.color.main)
-                        .setDescription(
-                            `Now playing: [${player.current.info.title}](${
-                                player.current.info.uri
-                            }) - Request By: ${player.current?.info.requester} - Duration: ${
-                                player.current.info.isStream
-                                    ? 'LIVE'
-                                    : this.client.utils.formatTime(player.current.info.length)
-                            }`
-                        ),
-                ],
-            });
+        if (player.queue.length === 0) {
+            if (player.current.anisongQueryResult) {
+                return await ctx.sendMessage({
+                    embeds: [
+                        this.client
+                            .embed()
+                            .setColor(this.client.color.main)
+                            .setDescription(
+                                `Now playing: ${player.current.anisongQueryResult.songName} from [${player.current.anisongQueryResult.animeEng ?? player.current.anisongQueryResult.animeJap}](${
+                                    player.current.anisongQueryResult.anilistURL
+                                }) - Request By: ${player.current?.info.requester} - Duration: ${
+                                    player.current.info.isStream
+                                        ? 'LIVE'
+                                        : this.client.utils.formatTime(player.current.info.length)
+                                }`
+                            ),
+                    ],
+                });
+            } else {
+                return await ctx.sendMessage({
+                    embeds: [
+                        this.client
+                            .embed()
+                            .setColor(this.client.color.main)
+                            .setDescription(
+                                `Now playing: [${player.current.info.title}](${
+                                    player.current.info.uri
+                                }) - Request By: ${player.current?.info.requester} - Duration: ${
+                                    player.current.info.isStream
+                                        ? 'LIVE'
+                                        : this.client.utils.formatTime(player.current.info.length)
+                                }`
+                            ),
+                    ],
+                });
+            }
+        }
+
+            
         const queue = player.queue.map(
-            (track, index) =>
-                `${index + 1}. [${track.info.title}](${track.info.uri}) - Request By: ${
-                    track?.info.requester
-                } - Duration: ${
-                    track.info.isStream ? 'LIVE' : this.client.utils.formatTime(track.info.length)
-                }`
+            (track, index) => {
+                if (track.anisongQueryResult) {
+                    return `${index + 1}. ${track.anisongQueryResult.songName} from [${track.anisongQueryResult.animeEng ?? track.anisongQueryResult.animeJap}](${track.anisongQueryResult.anilistURL}) - Request By: ${
+                        track?.info.requester
+                    } - Duration: ${
+                        track.info.isStream ? 'LIVE' : this.client.utils.formatTime(track.info.length)
+                    }`
+                } else {
+                    return `${index + 1}. [${track.info.title}](${track.info.uri}) - Request By: ${
+                        track?.info.requester
+                    } - Duration: ${
+                        track.info.isStream ? 'LIVE' : this.client.utils.formatTime(track.info.length)
+                    }`
+                }
+            }
+                
         );
         let totalLength = 0;
         player.queue.forEach(song => {
