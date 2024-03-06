@@ -330,11 +330,15 @@ export default class AnimeData {
         queryString +=" ORDER BY anis.annId, RANDOM() LIMIT @numberOfSongs";
         let data: any[] = db.prepare(queryString).all(
             {
+                discordId: query.discordId,
+                anililstName: query.anilistName,
                 animeName: query.animeName,
                 songName: query.songName,
                 artist: query.artist,
                 difficultyMin: query.difficultyMin,
                 difficultyMax: query.difficultyMax,
+                userScoreMin: query.userScoreMin,
+                userScoreMax: query.userScoreMax,
                 numberOfSongs: query.numberOfSongs
             }
         );
@@ -370,7 +374,7 @@ export default class AnimeData {
             queryString = "(" + queryStrings.join(" OR ") + ")";
         }
         queryString += " AND aum.score >= @userScoreMin AND aum.score <= @userScoreMax";
-        return queryString
+        return queryString;
     }
     
 }

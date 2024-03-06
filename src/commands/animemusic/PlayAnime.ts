@@ -202,7 +202,7 @@ export default class Play extends Command {
             anisongQuery.songName = option.value;
         }
         if (option = ctx.interaction.options.get('user')) {
-            anisongQuery.discordId = option.value;
+            anisongQuery.discordId = parseInt(option.value);
         }
         if (option = ctx.interaction.options.get('artist')) {
             anisongQuery.artist = option.value;
@@ -267,6 +267,7 @@ export default class Play extends Command {
         if (option = ctx.interaction.options.get('standard')) {
             anisongQuery.standard = option.value;
         }
+        console.log(anisongQuery)
         let queryResult = client.animedb.queryAnisongs(anisongQuery);
         let songs = [];
         let player = client.queue.get(ctx.guild.id);
