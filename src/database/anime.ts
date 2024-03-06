@@ -40,14 +40,14 @@ export default class AnimeData {
         db.prepare(
             'CREATE TABLE IF NOT EXISTS animemusicexclude (anisongId INTEGER PRIMARY KEY, anilistMediaId INTEGER, annId INTEGER, animeName TEXT, songName TEXT, songArtist TEXT)'
         ).run();
-        const data: any = db.prepare('SELECT * FROM ann LIMIT 1').get();
-        if (!data) {
-            await this.pullAllFromANN();
-        } else {
-            this.doBasicDBOperations();
-        }
-        const job1 = new CronJob('0 0 0 * * *', this.pullRecentFromANN, null, true, 'America/New_York');
-        const job2 = new CronJob('0 0 0 * * 1', this.CheckAnilistAndAnisongMissing, null, true, 'America/New_York');
+        // const data: any = db.prepare('SELECT * FROM ann LIMIT 1').get();
+        // if (!data) {
+        //     await this.pullAllFromANN();
+        // } else {
+        //     this.doBasicDBOperations();
+        // }
+        // const job1 = new CronJob('0 0 0 * * *', this.pullRecentFromANN, null, true, 'America/New_York');
+        // const job2 = new CronJob('0 0 0 * * 1', this.CheckAnilistAndAnisongMissing, null, true, 'America/New_York');
         
     }
     private async doBasicDBOperations(): Promise<void> {
@@ -212,7 +212,7 @@ export default class AnimeData {
         if (userLists.length == 0) {
             return false;
         }
-        db.prepare('INSERT OR REPLACE anilistuser (discordId, anilistName) VALUES(?, ?)').run(discordId, anilistName);
+        db.prepare('REPLACE INTO anilistuser (discordId, anilistName) VALUES(?, ?)').run(discordId, anilistName);
         this.updateAnilistUserMedia(discordId, userLists);
         return true;
     }
@@ -225,13 +225,13 @@ export default class AnimeData {
         });
     }
     private addAnilistUserMedia(discordId: number, anilistMediaId: number, status: string, score: number) {
-        db.prepare('INSERT OR REPLACE anilistusermedia (discordId, anilistMediaId, status, score) VALUES(?, ?, ?, ?)').run(discordId, anilistMediaId, status, score);
+        db.prepare('INSERT INTO anilistusermedia (discordId, anilistMediaId, status, score) VALUES(?, ?, ?, ?)').run(discordId, anilistMediaId, status, score);
     }
     private removeAnilistUserMedia(discordId: number) {
         db.prepare('DELETE FROM anilistusermedia WHERE discordId = ?').run(discordId);
     }
     private addAnimeMusicExclude(anisongId: number, anilistMediaId: number, annId: number) {
-        db.prepare('INSERT OR REPLACE anilistusermedia (anisongId, anilistMediaId, annId) VALUES(?, ?, ?)').run(anisongId, anilistMediaId, annId);
+        db.prepare('REPLACE INTO anilistusermedia (anisongId, anilistMediaId, annId) VALUES(?, ?, ?)').run(anisongId, anilistMediaId, annId);
     } 
     private removeAnimeMusicExclude(anisongId: number) {
         db.prepare('DELETE FROM animemusicexclude WHERE anisongId = ?').run(anisongId);
@@ -281,11 +281,11 @@ export default class AnimeData {
         return result;
     }
     public queryUserAnilistResults(anilistMediaId: number): UserAnilistResults[] {
-        let data: any[] = db.prepare("SELECT * FROM anilistusermedia WHERE anilistMediaId = ?").all(anilistMediaId);
+        let data: any[] = db.prepare("SELECT aum.discordId as 'discordId', au.anilistName as 'anilistName', aum.status as 'status', aum.score as 'score' FROM anilistusermedia aum JOIN anilistuser au on au.discordId = aum.discordId WHERE aum.anilistMediaId = ?").all(anilistMediaId);
         let result = [];
         if (data) {
             data.forEach(element => {
-                element.push(new UserAnilistResults(element.discordId, element.anilistName, element.status, element.score))
+                result.push(new UserAnilistResults(element.discordId, element.anilistName, element.status, element.score))
             });
         }
         return result;
