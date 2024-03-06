@@ -158,18 +158,18 @@ export default class AnilistClient {
         return result ? true : false;
     }
 
-    public async GetUserAnimeEntries(anilistName: string) {
+    public async GetUserAnimeEntries(anilistName: string): Promise<UserList[]> {
         let result: UserList[];
         try {
             result = await this.AnilistClient.lists.anime(anilistName);
         } catch (error) {
             if (error.message.includes("AniList API returned with a 429 error code. Message: Too Many Requests")) {
                 console.error("RATE LIMIT HIT");
-                return false;
+                return [];
             } else {
                 console.error('GET USER ANIME ENTRIES ERROR'),
                 console.error(error);
-                return false;
+                return [];
             }
         }
         return result;

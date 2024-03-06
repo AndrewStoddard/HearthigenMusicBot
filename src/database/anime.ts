@@ -5,6 +5,7 @@ import AnilistClient from '../structures/AnilistClient.js';
 
 import config from '../config.js';
 import { CronJob } from 'cron';
+import { UserList } from 'anilist-node';
 
 const db = new Database('./database/anime.db', {
     fileMustExist: false,
@@ -206,8 +207,22 @@ export default class AnimeData {
         }
         return anilistId;
     }
-    private setUserAnilist(discordId: number, anilistName: string) {
+    public async setUserAnilist(discordId: number, anilistName: string): Promise<boolean> {
+        let userLists = await this.AnilistClient.GetUserAnimeEntries(anilistName);
+        if (userLists.length == 0) {
+            return false;
+        }
         db.prepare('INSERT OR REPLACE anilistuser (discordId, anilistName) VALUES(?, ?)').run(discordId, anilistName);
+        this.updateAnilistUserMedia(discordId, userLists);
+        return true;
+    }
+    private updateAnilistUserMedia(discordId: number, userLists: UserList[]) {
+        this.removeAnilistUserMedia(discordId);
+        userLists.forEach(userList => {
+            userList.entries.forEach(animeEntry => {
+                this.addAnilistUserMedia(discordId, animeEntry.media.id, animeEntry.status, animeEntry.score);
+            });
+        });
     }
     private addAnilistUserMedia(discordId: number, anilistMediaId: number, status: string, score: number) {
         db.prepare('INSERT OR REPLACE anilistusermedia (discordId, anilistMediaId, status, score) VALUES(?, ?, ?, ?)').run(discordId, anilistMediaId, status, score);
