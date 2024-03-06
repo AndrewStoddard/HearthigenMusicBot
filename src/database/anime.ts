@@ -327,7 +327,12 @@ export default class AnimeData {
         queryString += query.character ? "" : " AND anis.songCategory not like '%character%'";
         queryString += query.chanting ? "" : " AND anis.songCategory not like '%chanting%'";
         queryString += query.standard ? "" : " AND anis.songCategory not like '%standard%'";
-        queryString +=" ORDER BY anis.annId, RANDOM() LIMIT @numberOfSongs";
+        queryString += " ORDER BY";
+        if (query.annSort) {
+            queryString += " anis.annId,";
+        }
+        queryString += " RANDOM()";
+        queryString += " LIMIT @numberOfSongs";
         let data: any[] = db.prepare(queryString).all(
             {
                 discordId: query.discordId,
@@ -405,6 +410,7 @@ export class AnisongQuery {
     public chanting: boolean = true;
     public standard: boolean = true;
     public numberOfSongs: number = 150;
+    public annSort: boolean = false;
 }
 export class AnisongQueryResult {
     public anisongId: number;

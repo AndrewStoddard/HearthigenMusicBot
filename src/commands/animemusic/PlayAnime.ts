@@ -197,6 +197,7 @@ export default class Play extends Command {
         let option;
         if (option = ctx.interaction.options.get('animename')) {
             anisongQuery.animeName = option.value;
+            anisongQuery.annSort = true;
         }
         if (option = ctx.interaction.options.get('songname')) {
             anisongQuery.songName = option.value;
@@ -267,7 +268,6 @@ export default class Play extends Command {
         if (option = ctx.interaction.options.get('standard')) {
             anisongQuery.standard = option.value;
         }
-        console.log(anisongQuery)
         let queryResult = client.animedb.queryAnisongs(anisongQuery);
         let songs = [];
         let player = client.queue.get(ctx.guild.id);
