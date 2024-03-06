@@ -12,6 +12,7 @@ export default {
         blue: 0x0000ff,
         yellow: 0xffff00,
         main: 0x2f3136,
+        amq: 0xdf6975
     },
     keepAlive: parseBoolean(process.env.KEEP_ALIVE) || false, // for https://replit.com keep alive bot 24/7
     searchEngine: process.env.SEARCH_ENGINE || (SearchEngine.YouTube as SearchEngine),
@@ -37,6 +38,7 @@ export default {
         applemusic:
             'https://media.discordapp.net/attachments/963097935820750878/1054333450368340018/apple-music-icon.png',
         deezer: 'https://media.discordapp.net/attachments/963097935820750878/1054333450024394802/5968803.png',
+        http: 'https://animemusicquiz.com/favicon-32x32.png',
     },
     production: parseBoolean(process.env.PRODUCTION) || true,
     lavalink: [
@@ -50,7 +52,8 @@ export default {
     anilistToken: process.env.ANILIST_API_TOKEN,
     annApiURL: process.env.ANN_API_URL || "https://www.animenewsnetwork.com/encyclopedia/",
     anisongApiURL: process.env.ANISONG_API_URL || "https://anisongdb.com/api/",
-    anilistAnimeURL: process.env.ANILIST_ANIME_URL || "https://anilist.co/anime/"
+    anilistAnimeURL: process.env.ANILIST_ANIME_URL || "https://anilist.co/anime/",
+    amqLogo: "https://cdn.discordapp.com/attachments/763493073317003316/1214764923393937438/Logo_Black.png?ex=65fa4cfe&is=65e7d7fe&hm=0b7b083a70aff5c54149f218b1370c6199af85d43546ba4b8dc31b9622174505&"
 };
 
 function parseBoolean(value: string | undefined): boolean {

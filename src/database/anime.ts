@@ -34,10 +34,10 @@ export default class AnimeData {
             'CREATE TABLE IF NOT EXISTS anilistuser (discordId INTEGER PRIMARY KEY, anilistName TEXT)'
         ).run();
         db.prepare(
-            'CREATE TABLE IF NOT EXISTS anilistusermedia (discordId INTEGER, anilistMediaId INTEGER, status TEXT, score REAL, PRIMARY KEY (discordId, anilistMediaId)'
+            'CREATE TABLE IF NOT EXISTS anilistusermedia (discordId INTEGER, anilistMediaId INTEGER, status TEXT, score REAL, PRIMARY KEY (discordId, anilistMediaId))'
         ).run();
         db.prepare(
-            'CREATE TABLE IF NOT EXISTS animemusicexclude (anisongId INTEGER PRIMARY KEY, anilistMediaId INTEGER, annId INTEGER, animeName TEXT, songName TEXT, songArtist TEXT'
+            'CREATE TABLE IF NOT EXISTS animemusicexclude (anisongId INTEGER PRIMARY KEY, anilistMediaId INTEGER, annId INTEGER, animeName TEXT, songName TEXT, songArtist TEXT)'
         ).run();
         const data: any = db.prepare('SELECT * FROM ann LIMIT 1').get();
         if (!data) {
@@ -228,6 +228,43 @@ export default class AnimeData {
         }
         return result;
     }
+    public queryAnimeName(animeName: string): string[] {
+        let data: any = db.prepare("SELECT animeEng, animeJap FROM anisong where animeEng like '%' || @animeName || '%' OR animeJap like '%' || @animeName || '%'").all({animeName: animeName});
+        let result = [];
+        data.forEach(element => {
+            if (!result.includes(element.animeEng ? element.animeEng : element.animeJap)) {
+                result.push(element.animeEng ? element.animeEng : element.animeJap);
+            }
+        });
+        return result;
+    }
+    public querySongName(songName: string): any[] {
+        let data: any = db.prepare("SELECT songName, animeEng, animeJap FROM anisong where songName like '%' || ? || '%'").all(songName);
+        let result = [];
+        data.forEach(element => {
+            result.push({
+                songName: element.songName,
+                animeName: element.animeEng ? element.animeEng : element.animeJap
+            });
+        });
+        return result;
+    }
+    public queryArtist(artist: string): string[] {
+        let data: any = db.prepare("SELECT songArtist FROM anisong where songArtist like '%' || ? || '%'").all(artist);
+        let result = [];
+        data.forEach(element => {
+            result.push(element.songArtist);
+        });
+        return result;
+    }
+    public queryAnilistName(anilistName: string): string[] {
+        let data: any = db.prepare("SELECT anilistName FROM anilistuser where anilistName like '%' || ? || '%'").all(anilistName);
+        let result = [];
+        data.forEach(element => {
+            result.push(element.anilistName);
+        });
+        return result;
+    }
     public queryUserAnilistResults(anilistMediaId: number): UserAnilistResults[] {
         let data: any[] = db.prepare("SELECT * FROM anilistusermedia WHERE anilistMediaId = ?").all(anilistMediaId);
         let result = [];
@@ -238,6 +275,7 @@ export default class AnimeData {
         }
         return result;
     }
+    
     public queryAnisongs(query: AnisongQuery) : AnisongQueryResult[] {
         let queryString = "SELECT anis.* FROM anisong anis";
         if (query.discordId != -1) {
@@ -250,25 +288,33 @@ export default class AnimeData {
         } else {
             queryString += " WHERE";
         }
-        queryString += " (anis.animeEng like '%@animeName%' || anis.animeJap like '%@animeName%')";
-        queryString += query.annId == -1 ? "" : " AND anis.annId = @annId";
-        queryString += query.anilistMediaId == -1 ? "" : " AND anis.anilistMediaId = @anilistMediaId";
+        queryString += " (anis.animeEng like '%' || @animeName || '%' OR anis.animeJap like '%' || @animeName || '%')";
+        queryString += query.songName == "" ? "" : " AND anis.songName like '%' || @songName || '%'";
         queryString += query.openings ? "" : " AND anis.songType != 'OP'";
         queryString += query.endings ? "" : " AND anis.songType != 'ED'";
         queryString += query.inserts ? "" : " AND anis.songType != 'IN'";
-        queryString += query.movies ? "" : " AND anis.animeType not like '%movie%'";
+        queryString += query.movie ? "" : " AND anis.animeType not like '%movie%'";
         queryString += query.tv ? "" : " AND anis.animeType not like '%tv%'";
         queryString += query.ona ? "" : " AND anis.animeType not like '%ona%'";
         queryString += query.ova ? "" : " AND anis.animeType not like '%ova%'";
-        queryString += query.oav ? "" : " AND anis.animeType not like '%oav%'";
         queryString += query.special ? "" : " AND anis.animeType not like '%special%'";
         queryString += query.artist == ""  ? "" : " AND anis.songArtist like '%@artist%'"
-        queryString += " AND anis.songDifficulty >= @difficultyMin AND aum.songDifficulty <= @difficultyMax";
-        queryString += query.instumental ? "" : " AND anis.songCategory not like '%instumental%'";
+        queryString += " AND anis.songDifficulty >= @difficultyMin AND anis.songDifficulty <= @difficultyMax";
+        queryString += query.instrumental ? "" : " AND anis.songCategory not like '%instumental%'";
         queryString += query.character ? "" : " AND anis.songCategory not like '%character%'";
         queryString += query.chanting ? "" : " AND anis.songCategory not like '%chanting%'";
         queryString += query.standard ? "" : " AND anis.songCategory not like '%standard%'";
-        let data: any[] = db.prepare(queryString).all(query);
+        queryString +=" ORDER BY anis.annId, RANDOM() LIMIT @numberOfSongs";
+        let data: any[] = db.prepare(queryString).all(
+            {
+                animeName: query.animeName,
+                songName: query.songName,
+                artist: query.artist,
+                difficultyMin: query.difficultyMin,
+                difficultyMax: query.difficultyMax,
+                numberOfSongs: query.numberOfSongs
+            }
+        );
         let result = [];
         if (data && data.length > 0) {
             data.forEach(element => {
@@ -278,7 +324,9 @@ export default class AnimeData {
                 } else if (element.mq) {
                     videoURL = element.mq;
                 }
-                result.push(new AnisongQueryResult(element.anisongId, element.annId, element.anilistMediaId, element.anisongType, element.animeEng, element.animeJap, element.songName, element.animeType, element.songArtist, element.songDifficulty, videoURL, element.songCategory));
+                let queryResult = new AnisongQueryResult(element.anisongId, element.annId, element.anilistMediaId, element.anisongType, element.animeEng, element.animeJap, element.songName, element.animeType, element.songArtist, element.songDifficulty, videoURL, element.url, element.songCategory);
+                queryResult.users = this.queryUserAnilistResults(element.anilistMediaId);
+                result.push(queryResult);
             });
         }
         return result;
@@ -288,14 +336,8 @@ export default class AnimeData {
         if (query.userStatusCompleted) {
             queryStrings.push("aum.status = 'COMPLETED'");
         }
-        if (query.userStatusPlanning) {
-            queryStrings.push("aum.status = 'PLANNING'");
-        }
         if (query.userStatusWatching) {
             queryStrings.push("aum.status = 'CURRENT'");
-        }
-        if (query.userStatusDropped) {
-            queryStrings.push("aum.status = 'DROPPED'");
         }
         if (query.userStatusPaused) {
             queryStrings.push("aum.status = 'PAUSED'");
@@ -310,37 +352,34 @@ export default class AnimeData {
     
 }
 
-class AnisongQuery {
+export class AnisongQuery {
     public discordId: number = -1;
     public anilistName: string = "";
+    public songName: string = "";
     public userStatusCompleted: boolean = true;
-    public userStatusPlanning: boolean = true;
     public userStatusWatching: boolean = true;
-    public userStatusDropped: boolean = true;
     public userStatusPaused: boolean = true;
     public userScoreMax: number = 100;
     public userScoreMin: number = 0;
     public animeName: string = "";
-    public annId: number = -1;
-    public anilistMediaId: number = -1;
     public openings: boolean = true;
     public inserts: boolean = true;
     public endings: boolean = true;
-    public movies: boolean = true;
+    public movie: boolean = true;
     public tv: boolean = true;
     public ona: boolean = true;
     public ova: boolean = true;
-    public oav: boolean = true;
     public special: boolean = true;
     public artist: string = "";
     public difficultyMax: number = 100;
     public difficultyMin: number = 0;
-    public instumental: boolean = true;
+    public instrumental: boolean = true;
     public character: boolean = true;
     public chanting: boolean = true;
     public standard: boolean = true;
+    public numberOfSongs: number = 150;
 }
-class AnisongQueryResult {
+export class AnisongQueryResult {
     public anisongId: number;
     public anilistMediaId: number;
     public annId: number;
@@ -353,9 +392,10 @@ class AnisongQueryResult {
     public songArtist: string;
     public songDifficulty: number;
     public videoURL: string;
+    public audioURL: string;
     public songCategory: string;
     public users: UserAnilistResults[];
-    constructor(anisongId: number, annId: number, anilistMediaId: number, anisongType: string, animeEng: string, animeJap: string, songName: string, animeType: string, songArtist: string, songDifficulty: number, videoURL: string, songCategory: string) {
+    constructor(anisongId: number, annId: number, anilistMediaId: number, anisongType: string, animeEng: string, animeJap: string, songName: string, animeType: string, songArtist: string, songDifficulty: number, videoURL: string, audioURL: string, songCategory: string) {
         this.anisongId = anisongId;
         this.annId = annId;
         this.anisongType = anisongType;
@@ -368,6 +408,7 @@ class AnisongQueryResult {
         this.songCategory = songCategory;
         this.anilistMediaId = anilistMediaId;
         this.videoURL = videoURL;
+        this.audioURL = audioURL;
         this.anilistURL = config.anilistAnimeURL + this.anilistMediaId;
     }
     public setUsers(users: UserAnilistResults[]) : void {
@@ -376,7 +417,7 @@ class AnisongQueryResult {
 
 
 }
-class UserAnilistResults {
+export class UserAnilistResults {
     public discordId: number;
     public anilistName: string;
     public status: string;

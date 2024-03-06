@@ -16,6 +16,7 @@ import { Player } from 'shoukaku';
 import { Song } from '../../structures/Dispatcher.js';
 import { Dispatcher, Event, Lavamusic } from '../../structures/index.js';
 import { trackStart } from '../../utils/SetupSystem.js';
+import { UserAnilistResults } from '../../database/anime.js';
 
 
 export default class TrackStart extends Event {
@@ -61,7 +62,7 @@ export default class TrackStart extends Event {
                 loopButton
             );
         }
-        const embed = this.client
+        let embed = this.client
             .embed()
             .setAuthor({
                 name: 'Now Playing',
@@ -98,6 +99,26 @@ export default class TrackStart extends Event {
                 await trackStart(id, textChannel, dispatcher, track, this.client);
             }
         } else {
+            if (track.anisongQueryResult) {
+                embed = this.client.embed()
+                .setAuthor({
+                    name: 'Now Playing',
+                    iconURL:
+                        this.client.config.icons[track.info.sourceName] ??
+                        this.client.user.displayAvatarURL({ extension: 'png' }),
+                })
+                .setColor(this.client.color.amq)
+                .setTitle(track.anisongQueryResult.songName + " (" + track.anisongQueryResult.anisongType + ")")
+                .setURL(track.anisongQueryResult.videoURL)
+                .setFooter({
+                    text: `Requested by ${track.info.requester.tag}`,
+                    iconURL: track.info.requester.avatarURL({}),
+                })
+                .setDescription(`**[${track.anisongQueryResult.animeEng ?? track.anisongQueryResult.animeEng}](${track.anisongQueryResult.anilistURL}) ** -  **Duration:** ${this.client.utils.formatTime(track.info.length)}  -  **Artist:** ${track.anisongQueryResult.songArtist}`)
+                .setThumbnail(this.client.config.amqLogo)
+                .addFields(this.getUserAnimeData(track.anisongQueryResult.users))
+                .setTimestamp();
+            }
             const message = await channel.send({
                 embeds: [embed],
                 components: [buttonBuilder()],
@@ -246,6 +267,21 @@ export default class TrackStart extends Event {
                 await interaction.deferUpdate();
             });
         }
+    }
+    private getUserAnimeData(users: UserAnilistResults[]) {
+        let result = []
+        users.forEach(user => {
+            let status = user.status.slice(0,1);
+            if (user.status == "CURRENT") {
+                status = "W"
+            }
+            result.push({
+                name: user.anilistName,
+                value: "(" + status + ") " + user.score,
+                inline: true
+            });
+        });
+        return result;
     }
 }
 

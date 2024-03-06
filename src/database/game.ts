@@ -11,7 +11,7 @@ const db = new Database('./database/game.db', {
     readonly: false,
 });
 db.pragma('journal_mode=WAL');
-export default class AnimeData {
+export default class GameData {
 
     constructor() { }
     public async intialize(): Promise<void> {

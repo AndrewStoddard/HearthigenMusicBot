@@ -10,12 +10,15 @@ import {
 import { LoadType } from 'shoukaku';
 
 import { Context, Event, Lavamusic } from '../../structures/index.js';
+import AnimeData from '../../database/anime.js';
 
 export default class InteractionCreate extends Event {
+    private animedb: AnimeData;
     constructor(client: Lavamusic, file: string) {
         super(client, file, {
             name: 'interactionCreate',
         });
+        this.animedb = new AnimeData();
     }
     public async run(interaction: CommandInteraction | AutocompleteInteraction): Promise<any> {
         if (
@@ -214,8 +217,55 @@ export default class InteractionCreate extends Event {
                     default:
                         break;
                 }
-
                 return await interaction.respond(songs).catch(() => {});
+            } else if (interaction.commandName = 'playanime') {
+                let commandOption = interaction.options.getFocused(true);
+                let autocompleteOptions = [];
+                switch(commandOption.name) {
+                    case "animename":
+                        this.animedb.queryAnimeName(commandOption.value).forEach(animeName => {
+                            autocompleteOptions.push(
+                                {
+                                    name: animeName,
+                                    value: animeName,
+                                }
+                            );
+                        });
+                        break;
+                    case "songname":
+                        this.animedb.querySongName(commandOption.value).forEach(element => {
+                            autocompleteOptions.push(
+                                {
+                                    name: element.songName + "(" + element.animeName + ")",
+                                    value: element.songName,
+                                }
+                            );
+                        });
+                        break;
+                    case "artist":
+                        this.animedb.queryArtist(commandOption.value).forEach(artist => {
+                            autocompleteOptions.push(
+                                {
+                                    name: artist,
+                                    value: artist,
+                                }
+                            );
+                        });
+                        break;
+                    case "anilistname":
+                        this.animedb.queryAnilistName(commandOption.value).forEach(anilistName => {
+                            autocompleteOptions.push(
+                                {
+                                    name: anilistName,
+                                    value: anilistName,
+                                }
+                            );
+                        });
+                        break;
+                    default:
+                        break;
+                }
+                return await interaction.respond(autocompleteOptions.slice(0, 25)).catch(() => {});
             }
         }
     }
