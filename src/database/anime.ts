@@ -40,12 +40,12 @@ export default class AnimeData {
         db.prepare(
             'CREATE TABLE IF NOT EXISTS animemusicexclude (anisongId INTEGER PRIMARY KEY, anilistMediaId INTEGER, annId INTEGER, animeName TEXT, songName TEXT, songArtist TEXT)'
         ).run();
-        // const data: any = db.prepare('SELECT * FROM ann LIMIT 1').get();
-        // if (!data) {
-        //     await this.pullAllFromANN();
-        // } else {
-        //     this.doBasicDBOperations();
-        // }
+        const data: any = db.prepare('SELECT * FROM ann LIMIT 1').get();
+        if (!data) {
+            await this.pullAllFromANN();
+        } else {
+            this.doBasicDBOperations();
+        }
         const job1 = new CronJob('0 0 0 * * 1', this.pullRecentFromANN, null, true, 'America/New_York');
         const job2 = new CronJob('0 0 0 * * 1', this.CheckAnilistAndAnisongMissing, null, true, 'America/New_York');
         const job3 = new CronJob('0 0 0 * * *', this.updateAllAnilists, null, true, 'America/New_York');        
@@ -86,21 +86,21 @@ export default class AnimeData {
 
     public handleAnilistSearch(anilistId: number, returnParams: any) {
         if (anilistId != 0) {
-            returnParams.this.addAnilistMediaToDB(anilistId, returnParams.id, returnParams.mangaName == undefined ? returnParams.animeName : returnParams.mangaName)
-            returnParams.this.setAnilistTrueOnANN(returnParams.id);
-            returnParams.this.setAnilistOnAnisong(anilistId, returnParams.id);
+            returnParams.thisParam.addAnilistMediaToDB(anilistId, returnParams.id, returnParams.mangaName == undefined ? returnParams.animeName : returnParams.mangaName)
+            returnParams.thisParam.setAnilistTrueOnANN(returnParams.id);
+            returnParams.thisParam.setAnilistOnAnisong(anilistId, returnParams.id);
         }
     }
     public handleAnisongSearch(anisongs: AnisongData[], returnParams: any) {
         if (anisongs.length > 0) {
-            let anilistId = returnParams.this.getAnilistIdFromANN(returnParams.annId);
+            let anilistId = returnParams.thisParam.getAnilistIdFromANN(returnParams.annId);
             anisongs.forEach(anisong => {
-                returnParams.this.addAnisongToDB(anisong.anisongId, anisong.annId, anilistId, anisong.url, anisong.songType, anisong.anisongType, anisong.animeEng, anisong.animeJap, anisong.songName, anisong.animeType, anisong.songArtist, anisong.songDifficulty, anisong.hq, anisong.mq, anisong.songCategory);
+                returnParams.thisParam.addAnisongToDB(anisong.anisongId, anisong.annId, anilistId, anisong.url, anisong.songType, anisong.anisongType, anisong.animeEng, anisong.animeJap, anisong.songName, anisong.animeType, anisong.songArtist, anisong.songDifficulty, anisong.hq, anisong.mq, anisong.songCategory);
             });
             if (anilistId == 0) {
-                returnParams.this.AnilistClient.QueueRequest("SearchByAnimeName", {"id": returnParams.annId, "animeName": anisongs[0].animeJap, "this": returnParams.this}, returnParams.this.handleAnilistSearch);
+                returnParams.thisParam.AnilistClient.QueueRequest("SearchByAnimeName", {"id": returnParams.annId, "animeName": anisongs[0].animeJap, "thisParam": returnParams.thisParam}, returnParams.thisParam.handleAnilistSearch);
             }
-            returnParams.this.setAnisongTrueOnANN(returnParams.annId);
+            returnParams.thisParam.setAnisongTrueOnANN(returnParams.annId);
         }
     }
     private async CheckAnilistAndAnisongMissing(): Promise<void> {
@@ -110,19 +110,19 @@ export default class AnimeData {
             if (noAnilistManga) { 
                 console.log("Manga with no Anilist: " + noAnilistManga.length)
                 noAnilistManga.forEach(async element => {
-                    this.AnilistClient.QueueRequest("SearchByMangaName", {"id": element.annId, "mangaName": element.name, "this": this}, this.handleAnilistSearch);
+                    this.AnilistClient.QueueRequest("SearchByMangaName", {"id": element.annId, "mangaName": element.name, "thisParam": this}, this.handleAnilistSearch);
                 });
             }
             if (noAnilistAnime) { 
                 console.log("Anime with no Anilist: " + noAnilistAnime.length)
                 noAnilistAnime.forEach(async element => {
-                    this.AnilistClient.QueueRequest("SearchByAnimeName", {"id": element.annId, "animeName": element.name, "this": this}, this.handleAnilistSearch);
+                    this.AnilistClient.QueueRequest("SearchByAnimeName", {"id": element.annId, "animeName": element.name, "thisParam": this}, this.handleAnilistSearch);
                 });
             }
             if (noAnisong) { 
                 console.log("Anime with no Anisong: " + noAnisong.length)
                 noAnisong.forEach(async element => {
-                    this.AnisongClient.QueueRequest("getAnisongDataFromANNId", {"annId": element.annId, "this": this}, this.handleAnisongSearch);
+                    this.AnisongClient.QueueRequest("getAnisongDataFromANNId", {"annId": element.annId, "thisParam": this}, this.handleAnisongSearch);
                 });
             }
     }
@@ -135,7 +135,7 @@ export default class AnimeData {
                 if (anilistmedia && anilistmedia.length > 0) {
                     this.setAnilistOnAnisong(anilistmedia[0].anilistMediaId, element.annId);
                 } else {
-                    this.AnilistClient.QueueRequest("SearchByAnimeName", {"id": element.annId, "animeName": element.animeJap, "this": this}, this.handleAnilistSearch);
+                    this.AnilistClient.QueueRequest("SearchByAnimeName", {"id": element.annId, "animeName": element.animeJap, "thisParam": this}, this.handleAnilistSearch);
                 }
             });
         }
@@ -143,10 +143,10 @@ export default class AnimeData {
     private async addNewANN(ann: any): Promise<void> {
         let type = ann.type.toLowerCase();
         if (type.includes('manga') || type.includes('anthology')) {
-            this.AnilistClient.QueueRequest("SearchByMangaName", {"id": ann.id, "mangaName": ann.name, "this": this}, this.handleAnilistSearch);
+            this.AnilistClient.QueueRequest("SearchByMangaName", {"id": ann.id, "mangaName": ann.name, "thisParam": this}, this.handleAnilistSearch);
         } else if (type.includes('tv') || type.includes('oav') || type.includes('ona') || type.includes('ova') || type.includes('movie') || type.includes('special')) {
-            this.AnilistClient.QueueRequest("SearchByAnimeName", {"id": ann.id, "animeName": ann.name, "this": this}, this.handleAnilistSearch);
-            this.AnisongClient.QueueRequest("getAnisongDataFromANNId", {"annId": ann.id, "this": this}, this.handleAnisongSearch)
+            this.AnilistClient.QueueRequest("SearchByAnimeName", {"id": ann.id, "animeName": ann.name, "thisParam": this}, this.handleAnilistSearch);
+            this.AnisongClient.QueueRequest("getAnisongDataFromANNId", {"annId": ann.id, "thisParam": this}, this.handleAnisongSearch)
         } else {
             console.log("Type of '" + type + "' not found for annId '" + ann.id + "'. " + ann.name);
             return;
