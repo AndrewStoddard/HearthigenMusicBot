@@ -34,19 +34,19 @@ export default class AnimeData {
             'CREATE TABLE IF NOT EXISTS anilistuser (discordId INTEGER PRIMARY KEY, anilistName TEXT)'
         ).run();
         db.prepare(
-            'CREATE TABLE IF NOT EXISTS anilistusermedia (discordId INTEGER, anilistMediaId INTEGER, status TEXT, score REAL, PRIMARY KEY (discordId, anilistMediaId)'
+            'CREATE TABLE IF NOT EXISTS anilistusermedia (discordId INTEGER, anilistMediaId INTEGER, status TEXT, score REAL, PRIMARY KEY (discordId, anilistMediaId))'
         ).run();
         db.prepare(
-            'CREATE TABLE IF NOT EXISTS animemusicexclude (anisongId INTEGER PRIMARY KEY, anilistMediaId INTEGER, annId INTEGER, animeName TEXT, songName TEXT, songArtist TEXT'
+            'CREATE TABLE IF NOT EXISTS animemusicexclude (anisongId INTEGER PRIMARY KEY, anilistMediaId INTEGER, annId INTEGER, animeName TEXT, songName TEXT, songArtist TEXT)'
         ).run();
-        const data: any = db.prepare('SELECT * FROM ann LIMIT 1').get();
-        if (!data) {
-            await this.pullAllFromANN();
-        } else {
-            this.doBasicDBOperations();
-        }
-        const job1 = new CronJob('0 0 0 * * *', this.pullRecentFromANN, null, true, 'America/New_York');
-        const job2 = new CronJob('0 0 0 * * 1', this.CheckAnilistAndAnisongMissing, null, true, 'America/New_York');
+        // const data: any = db.prepare('SELECT * FROM ann LIMIT 1').get();
+        // if (!data) {
+        //     await this.pullAllFromANN();
+        // } else {
+        //     this.doBasicDBOperations();
+        // }
+        // const job1 = new CronJob('0 0 0 * * *', this.pullRecentFromANN, null, true, 'America/New_York');
+        // const job2 = new CronJob('0 0 0 * * 1', this.CheckAnilistAndAnisongMissing, null, true, 'America/New_York');
         
     }
     private async doBasicDBOperations(): Promise<void> {
