@@ -1,8 +1,6 @@
-import { LoadType } from 'shoukaku';
-
 import { Command, Context, Lavamusic } from '../../structures/index.js';
 
-export default class Play extends Command {
+export default class PlayAnilist extends Command {
     constructor(client: Lavamusic) {
         super(client, {
             name: 'linkanilist',

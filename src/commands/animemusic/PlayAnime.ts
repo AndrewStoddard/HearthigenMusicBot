@@ -2,7 +2,7 @@ import { LoadType } from 'shoukaku';
 import { AnisongQuery } from '../../database/anime.js';
 import { Command, Context, Lavamusic } from '../../structures/index.js';
 
-export default class Play extends Command {
+export default class PlayAnime extends Command {
     constructor(client: Lavamusic) {
         super(client, {
             name: 'playanime',
