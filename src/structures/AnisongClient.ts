@@ -5,7 +5,7 @@ export default class AnisongClient {
         this.RequestQueue = []
         setInterval(() => {
             this.handleQueueRequest()
-        }, 1500)
+        }, 3000)
     }
     public QueueRequest(requestType: string, requestParams: any, callback: any): void {
         this.RequestQueue.push({
