@@ -4,7 +4,7 @@ import AnisongClient, { AnisongData } from '../structures/AnisongClient.js';
 import AnilistClient from '../structures/AnilistClient.js';
 
 import config from '../config.js';
-import { CronJob } from 'cron';
+import cron from 'node-cron'
 import { UserList } from 'anilist-node';
 
 const db = new Database('./database/anime.db', {
@@ -46,9 +46,9 @@ export default class AnimeData {
         } else {
             this.doBasicDBOperations();
         }
-        const job1 = new CronJob('0 0 0 * * 1', this.pullRecentFromANN, null, true, 'America/New_York');
-        const job2 = new CronJob('0 0 0 * * 1', this.CheckAnilistAndAnisongMissing, null, true, 'America/New_York');
-        const job3 = new CronJob('0 0 0 * * *', this.updateAllAnilists, null, true, 'America/New_York');        
+        cron.schedule('0 0 0 * * 1', this.pullRecentFromANN, { scheduled: true, timezone: 'America/New_York'});
+        cron.schedule('0 0 0 * * 1', this.CheckAnilistAndAnisongMissing, { scheduled: true, timezone: 'America/New_York'});
+        cron.schedule('0 0 0 * * *', this.updateAllAnilists, { scheduled: true, timezone: 'America/New_York'});
     }
     private async doBasicDBOperations(): Promise<void> {
         await this.CheckAnilistAndAnisongMissing();
