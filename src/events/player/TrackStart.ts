@@ -16,7 +16,6 @@ import { Player } from 'shoukaku';
 import { Song } from '../../structures/Dispatcher.js';
 import { Dispatcher, Event, Lavamusic } from '../../structures/index.js';
 import { trackStart } from '../../utils/SetupSystem.js';
-import { UserAnilistResults } from '../../database/anime.js';
 
 
 export default class TrackStart extends Event {
@@ -268,7 +267,7 @@ export default class TrackStart extends Event {
             });
         }
     }
-    private getUserAnimeData(users: UserAnilistResults[]) {
+    private getUserAnimeData(users: any[]) {
         let result = []
         users.forEach(user => {
             let status = user.status.slice(0,1);

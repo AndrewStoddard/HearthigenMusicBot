@@ -3,7 +3,6 @@ import { Message, User } from 'discord.js';
 import { Node, Player, Track } from 'shoukaku';
 
 import { Lavamusic } from './index.js';
-import { AnisongQueryResult } from '../database/anime.js';
 
 export class Song implements Track {
     encoded: string;
@@ -22,7 +21,7 @@ export class Song implements Track {
         requester: User;
     };
     pluginInfo: unknown;
-    anisongQueryResult: AnisongQueryResult;
+    anisongQueryResult: any;
 
     constructor(track: Song | Track, user: User) {
         if (!track) throw new Error('Track is not provided');

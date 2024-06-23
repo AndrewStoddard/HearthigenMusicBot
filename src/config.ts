@@ -53,7 +53,10 @@ export default {
     annApiURL: process.env.ANN_API_URL || "https://www.animenewsnetwork.com/encyclopedia/",
     anisongApiURL: process.env.ANISONG_API_URL || "https://anisongdb.com/api/",
     anilistAnimeURL: process.env.ANILIST_ANIME_URL || "https://anilist.co/anime/",
-    amqLogo: "https://cdn.discordapp.com/attachments/763493073317003316/1214764923393937438/Logo_Black.png?ex=65fa4cfe&is=65e7d7fe&hm=0b7b083a70aff5c54149f218b1370c6199af85d43546ba4b8dc31b9622174505&"
+    amqLogo: "https://cdn.discordapp.com/attachments/763493073317003316/1214764923393937438/Logo_Black.png?ex=65fa4cfe&is=65e7d7fe&hm=0b7b083a70aff5c54149f218b1370c6199af85d43546ba4b8dc31b9622174505&",
+    hgenApiURL: process.env.HEARTHIGEN_API_URL,
+    hgenApiUser: process.env.HEARTHIGEN_API_USER,
+    hgenApiPass: process.env.HEARTHIGEN_API_PASS
 };
 
 function parseBoolean(value: string | undefined): boolean {

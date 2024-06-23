@@ -1,5 +1,4 @@
 import { LoadType } from 'shoukaku';
-import { AnisongQuery } from '../../database/anime.js';
 import { Command, Context, Lavamusic } from '../../structures/index.js';
 
 export default class PlayAnime extends Command {
@@ -192,7 +191,7 @@ export default class PlayAnime extends Command {
         });
     }
     public async run(client: Lavamusic, ctx: Context, args: string[]): Promise<any> {
-        let anisongQuery = new AnisongQuery();
+        let anisongQuery: any = {};
         anisongQuery.numberOfSongs = parseInt(args[0]);
         let option;
         if (option = ctx.interaction.options.get('animename')) {
@@ -268,8 +267,8 @@ export default class PlayAnime extends Command {
         if (option = ctx.interaction.options.get('standard')) {
             anisongQuery.standard = option.value;
         }
-        let queryResult = client.animedb.queryAnisongs(anisongQuery);
-        let songs = [];
+        let queryResult = await client.animeClient.queryAnisongs(anisongQuery);
+
         let player = client.queue.get(ctx.guild.id);
         const vc = ctx.member as any;
         if (!player) player = await client.queue.create(ctx.guild, vc.voice.channel, ctx.channel);

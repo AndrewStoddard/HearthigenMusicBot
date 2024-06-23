@@ -10,15 +10,12 @@ import {
 import { LoadType } from 'shoukaku';
 
 import { Context, Event, Lavamusic } from '../../structures/index.js';
-import AnimeData from '../../database/anime.js';
 
 export default class InteractionCreate extends Event {
-    private animedb: AnimeData;
     constructor(client: Lavamusic, file: string) {
         super(client, file, {
             name: 'interactionCreate',
         });
-        this.animedb = new AnimeData();
     }
     public async run(interaction: CommandInteraction | AutocompleteInteraction): Promise<any> {
         if (
@@ -223,7 +220,8 @@ export default class InteractionCreate extends Event {
                 let autocompleteOptions = [];
                 switch(commandOption.name) {
                     case "animename":
-                        this.animedb.queryAnimeName(commandOption.value).forEach(animeName => {
+                        let animeNames = await this.client.animeClient.queryAnimeName(commandOption.value);
+                        animeNames.forEach(animeName => {
                             autocompleteOptions.push(
                                 {
                                     name: animeName,
@@ -233,7 +231,8 @@ export default class InteractionCreate extends Event {
                         });
                         break;
                     case "songname":
-                        this.animedb.querySongName(commandOption.value).forEach(element => {
+                        let songNames = await this.client.animeClient.querySongName(commandOption.value);
+                        songNames.forEach(element => {
                             autocompleteOptions.push(
                                 {
                                     name: element.songName + "(" + element.animeName + ")",
@@ -243,7 +242,8 @@ export default class InteractionCreate extends Event {
                         });
                         break;
                     case "artist":
-                        this.animedb.queryArtist(commandOption.value).forEach(artist => {
+                        let artistNames = await this.client.animeClient.queryArtistName(commandOption.value);
+                        artistNames.forEach(artist => {
                             autocompleteOptions.push(
                                 {
                                     name: artist,
@@ -253,7 +253,8 @@ export default class InteractionCreate extends Event {
                         });
                         break;
                     case "anilistname":
-                        this.animedb.queryAnilistName(commandOption.value).forEach(anilistName => {
+                        let anilistNames = await this.client.animeClient.queryAnilistName(commandOption.value);
+                        anilistNames.forEach(anilistName => {
                             autocompleteOptions.push(
                                 {
                                     name: anilistName,

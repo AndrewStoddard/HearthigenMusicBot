@@ -38,7 +38,7 @@ export default class PlayAnilist extends Command {
         });
     }
     public async run(client: Lavamusic, ctx: Context, args: string[]): Promise<any> {
-        let result = await client.animedb.setUserAnilist(parseInt(ctx.author.id), args[0]);
+        let result = await client.animeClient.setUserAnilist(parseInt(ctx.author.id), args[0]);
         let embed = client.embed();
         if (result) {
             ctx.sendMessage({
