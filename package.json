@@ -1,5 +1,5 @@
 {
-    "name": "Hearthigen Music Bot",
+    "name": "hgenmusicbot",
     "version": "4.0.7",
     "description": "Hearthigen Music Bot is a fork of Lavamusic by brblacky. This is a fork with custom features made for Hearthigen Discord.",
     "main": "dist/index.js",
@@ -50,7 +50,7 @@
         "dotenv": "^16.4.5",
         "fast-xml-parser": "^4.3.5",
         "node-cron": "^3.0.3",
-        "shoukaku": "github:shipgirlproject/Shoukaku",
+        "shoukaku": "4.0.1",
         "signale": "^1.4.0",
         "tslib": "^2.6.2",
         "undici": "^6.14.1"

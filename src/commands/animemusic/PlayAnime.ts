@@ -191,7 +191,34 @@ export default class PlayAnime extends Command {
         });
     }
     public async run(client: Lavamusic, ctx: Context, args: string[]): Promise<any> {
-        let anisongQuery: any = {};
+        let anisongQuery: any = {
+            discordId: -1,
+            anilistName: "",
+            songName: "",
+            userStatusCompleted: true,
+            userStatusWatching: true,
+            userStatusPaused: true,
+            userScoreMax: 100,
+            userScoreMin: 0,
+            animeName:  "",
+            openings: true,
+            inserts: true,
+            endings: true,
+            movie: true,
+            tv: true,
+            ona: true,
+            ova: true,
+            special: true,
+            artist:  "",
+            difficultyMax: 100,
+            difficultyMin: 0,
+            instrumental: true,
+            character: true,
+            chanting: true,
+            standard: true,
+            numberOfSongs: 150,
+            annSort: false
+        };
         anisongQuery.numberOfSongs = parseInt(args[0]);
         let option;
         if (option = ctx.interaction.options.get('animename')) {
