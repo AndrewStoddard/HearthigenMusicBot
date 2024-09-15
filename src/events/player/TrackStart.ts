@@ -188,6 +188,14 @@ export default class TrackStart extends Event {
                         break;
                     case 'stop':
                         dispatcher.stop();
+                        await interaction.reply({
+                            embeds: [
+                                    this.client.embed().setAuthor({
+                                        name: `Stopped by ${interaction.user.tag}`,
+                                        iconURL: interaction.user.avatarURL({}),
+                                    }),
+                                ],
+                        });
                         if (message)
                             await message.edit({
                                 embeds: [
@@ -208,6 +216,14 @@ export default class TrackStart extends Event {
                             return;
                         }
                         dispatcher.skip();
+                        await interaction.reply({
+                            embeds: [
+                                    this.client.embed().setAuthor({
+                                        name: `Skipped by ${interaction.user.tag}`,
+                                        iconURL: interaction.user.avatarURL({}),
+                                    }),
+                                ],
+                        });
                         if (message)
                             await message.edit({
                                 embeds: [

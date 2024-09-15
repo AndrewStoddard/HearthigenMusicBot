@@ -135,14 +135,6 @@ export default class SetupButtons extends Event {
                             this.client.color.main
                         );
                     await buttonReply(interaction, `Skipped the music.`, this.client.color.main);
-                    await interaction.reply({
-                        embeds: [
-                                this.client.embed().setAuthor({
-                                    name: `Skipped by ${interaction.member.displayName}`,
-                                    iconURL: interaction.member.displayAvatarURL({}),
-                                }),
-                            ],
-                    });
                     player.skip();
                     await message.edit({
                         embeds: [
@@ -155,14 +147,6 @@ export default class SetupButtons extends Event {
                     break;
                 case 'STOP_BUT':
                     player.stop();
-                    await interaction.reply({
-                        embeds: [
-                                this.client.embed().setAuthor({
-                                    name: `Skipped by ${interaction.member.displayName}`,
-                                    iconURL: interaction.member.displayAvatarURL({}),
-                                }),
-                            ],
-                    });
                     await buttonReply(interaction, `Stopped the music.`, this.client.color.main);
                     await message.edit({
                         embeds: [
