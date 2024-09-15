@@ -135,11 +135,11 @@ export default class SetupButtons extends Event {
                             this.client.color.main
                         );
                     await buttonReply(interaction, `Skipped the music.`, this.client.color.main);
-                    await message.reply({
+                    await interaction.reply({
                         embeds: [
                                 this.client.embed().setAuthor({
-                                    name: `Skipped by ${interaction.user.tag}`,
-                                    iconURL: interaction.user.avatarURL({}),
+                                    name: `Skipped by ${interaction.member.displayName}`,
+                                    iconURL: interaction.member.displayAvatarURL({}),
                                 }),
                             ],
                     });
@@ -158,8 +158,8 @@ export default class SetupButtons extends Event {
                     await interaction.reply({
                         embeds: [
                                 this.client.embed().setAuthor({
-                                    name: `Skipped by ${interaction.user.tag}`,
-                                    iconURL: interaction.user.avatarURL({}),
+                                    name: `Skipped by ${interaction.member.displayName}`,
+                                    iconURL: interaction.member.displayAvatarURL({}),
                                 }),
                             ],
                     });
