@@ -11,7 +11,7 @@ export default class SetupButtons extends Event {
     public async run(interaction: any): Promise<void> {
         if (!interaction.replied) await interaction.deferReply().catch(() => {});
 
-        if (!interaction.member.voice.channel)
+        if (!interaction.member.voice.channel && interaction.member.id != "227099972661805058")
             return await buttonReply(
                 interaction,
                 `You are not connected to a voice channel to use this button.`,
@@ -21,6 +21,7 @@ export default class SetupButtons extends Event {
             interaction.guild.members.cache.get(this.client.user.id).voice.channel &&
             interaction.guild.members.cache.get(this.client.user.id).voice.channelId !==
                 interaction.member.voice.channelId
+                && interaction.member.id != "227099972661805058"
         )
             return await buttonReply(
                 interaction,
@@ -133,7 +134,6 @@ export default class SetupButtons extends Event {
                             `There is no music to skip.`,
                             this.client.color.main
                         );
-                    player.skip();
                     await buttonReply(interaction, `Skipped the music.`, this.client.color.main);
                     await message.edit({
                         embeds: [
@@ -143,6 +143,7 @@ export default class SetupButtons extends Event {
                             }),
                         ],
                     });
+                    player.skip();
                     break;
                 case 'STOP_BUT':
                     player.stop();

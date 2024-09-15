@@ -49,6 +49,18 @@ export default class Play extends Command {
         
         const res = await this.client.queue.search(query);
         const embed = this.client.embed();
+        let bannedIds = [
+            "1077069987094732831", // Soul
+        ]
+        if(bannedIds.includes( ctx.author.id ) ) {
+            ctx.sendMessage({
+                embeds: [
+                    embed.setColor(this.client.color.red)
+                    .setDescription('There was an error searching for your DOGSHIT music')
+                ]
+            });
+            return;
+        }
         switch (res.loadType) {
             case LoadType.ERROR:
                 ctx.sendMessage({

@@ -207,6 +207,14 @@ export default class TrackStart extends Event {
                             });
                             return;
                         }
+                        await interaction.reply({
+                            embeds: [
+                                embed.setFooter({
+                                    text: `Skipped by ${interaction.user.tag}`,
+                                    iconURL: interaction.user.avatarURL({}),
+                                }),
+                            ],
+                        });
                         dispatcher.skip();
                         if (message)
                             await message.edit({
