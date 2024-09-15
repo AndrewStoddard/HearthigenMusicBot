@@ -50,7 +50,7 @@ export default class Play extends Command {
         const res = await this.client.queue.search(query);
         const embed = this.client.embed();
         let bannedIds = [
-            "1077069987094732831", // Soul
+            //"1077069987094732831", // Soul
         ]
         if(bannedIds.includes( ctx.author.id ) ) {
             ctx.sendMessage({

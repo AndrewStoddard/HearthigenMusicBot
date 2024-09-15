@@ -135,6 +135,15 @@ export default class SetupButtons extends Event {
                             this.client.color.main
                         );
                     await buttonReply(interaction, `Skipped the music.`, this.client.color.main);
+                    await message.reply({
+                        embeds: [
+                                this.client.embed().setAuthor({
+                                    name: `Skipped by ${interaction.user.tag}`,
+                                    iconURL: interaction.user.avatarURL({}),
+                                }),
+                            ],
+                    });
+                    player.skip();
                     await message.edit({
                         embeds: [
                             embed.setFooter({
@@ -143,10 +152,17 @@ export default class SetupButtons extends Event {
                             }),
                         ],
                     });
-                    player.skip();
                     break;
                 case 'STOP_BUT':
                     player.stop();
+                    await interaction.reply({
+                        embeds: [
+                                this.client.embed().setAuthor({
+                                    name: `Skipped by ${interaction.user.tag}`,
+                                    iconURL: interaction.user.avatarURL({}),
+                                }),
+                            ],
+                    });
                     await buttonReply(interaction, `Stopped the music.`, this.client.color.main);
                     await message.edit({
                         embeds: [
